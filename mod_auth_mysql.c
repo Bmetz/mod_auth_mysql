@@ -25,37 +25,25 @@
 
 #include "config.h"
 
-#ifdef APACHE2
 #define PALLOC apr_palloc
 #define PCALLOC apr_pcalloc
 #define SNPRINTF apr_snprintf
 #define PSTRDUP apr_pstrdup
 #define PSTRCAT apr_pstrcat
 #define APACHELOG(severity, handle, message...) ap_log_error(APLOG_MARK, APLOG_NOERRNO | severity, 0, handle->server, message)
-#else
-#define PALLOC ap_palloc
-#define PCALLOC ap_pcalloc
-#define SNPRINTF ap_snprintf
-#define PSTRDUP ap_pstrdup
-#define PSTRCAT ap_pstrcat
-#define APACHELOG(severity, handle, message...) ap_log_error(APLOG_MARK, APLOG_NOERRNO | severity, handle->server, message)
-#endif
 
 #include <httpd.h>
 #include <http_config.h>
 #include <http_core.h>
 #include <http_protocol.h>
 #include <http_log.h>
-#ifdef APACHE2
+
 #include "http_request.h"   /* for ap_hook_(check_user_id | auth_checker)*/
 #include <apr_general.h>
 #include <apr_md5.h>
 #include <apr_sha1.h>
 #include <apr_strings.h>
-#else
-#include <ap_md5.h>
-#include <ap_sha1.h>
-#endif
+
 
 #if APR_HAS_THREADS
 #include <apr_thread_mutex.h>
@@ -164,19 +152,10 @@ static char *md5_hex_hash(const char *pass)
 	 * use dynamic memory if you want to reuse it somewhere else */
 	static char real_hash[33];
 	int i;
-#ifdef APACHE2
 	apr_md5_ctx_t ct;
-
 	apr_md5_init(&ct);
 	apr_md5_update(&ct, pass, strlen(pass));
 	apr_md5_final(hash, &ct);
-#else
-	AP_MD5_CTX ct;
-
-	ap_MD5Init(&ct);
-	ap_MD5Update(&ct, pass, strlen(pass));
-	ap_MD5Final(hash, &ct);
-#endif
 	
 	/* Now we convert the 16 octet hash to a 32 byte hex string */
 	for (i = 0; i < 16; i++) {
@@ -200,7 +179,6 @@ static char *sha1_hex_hash(const char *passwd)
 {
 	int i;
 
-#ifdef APACHE2
 	apr_sha1_ctx_t ct;
 	char hash[APR_SHA1_DIGESTSIZE];
 	static char real_hash[APR_SHA1_DIGESTSIZE * 2 + 1];
@@ -208,15 +186,6 @@ static char *sha1_hex_hash(const char *passwd)
 	apr_sha1_init(&ct);
 	apr_sha1_update(&ct, passwd, strlen(passwd));
 	apr_sha1_final(hash, &ct);
-#else
-	AP_SHA1_CTX ct;
-	char hash[SHA_DIGESTSIZE];
-	static char real_hash[SHA_DIGESTSIZE * 2 + 1];
-
-	ap_SHA1Init(&ct);
-	ap_SHA1Update(&ct, passwd, strlen(passwd));
-	ap_SHA1Final(hash, &ct);
-#endif
 
 	/* Now we convert the 20 octet hash to a 40 byte hex string */
 	for (i = 0; i < sizeof(hash); i++) {
@@ -247,11 +216,8 @@ static int check_mysql_encryption(const char *passwd, char *enc_passwd)
 
 static int check_apache_encryption(const char *passwd, char *enc_passwd)
 {
-#ifdef APACHE2
 	return (!apr_password_validate(passwd, enc_passwd));
-#else
 	return (!ap_validate_password(passwd, enc_passwd));
-#endif
 }
 
 typedef struct {
@@ -351,13 +317,7 @@ module auth_mysql_module;
 
 static int open_auth_dblink(request_rec *r, mysql_auth_config_rec *sec);
 
-#ifdef APACHE2
-static apr_status_t
-#else
-static void
-#endif
-
-auth_mysql_cleanup(void *ptr)
+static apr_status_t auth_mysql_cleanup(void *ptr)
 {
 	mysql_auth_config_rec *sec = ptr;
 
@@ -370,31 +330,14 @@ auth_mysql_cleanup(void *ptr)
 	}
 }
 
-/* Do the magic required when the module is first loaded.
+/* Removed mysql_auth_init_handler
  */
-#ifdef APACHE2
-void mysql_auth_init_handler(server_rec *s, apr_pool_t *p)
-#else
-void mysql_auth_init_handler(server_rec *s, pool *p)
-#endif
-{
-#ifdef APACHE2
-#else
-#if MODULE_MAGIC_NUMBER >= 19980527
-    ap_add_version_component("AuthMySQL/" AUTH_MYSQL_VERSION);
-#endif
-#endif
-}
 
 /* Called each and every time a new per-directory configuration is
  * created.  We just initialise variables and set defaults.  This is
  * run *before* actual config takes place.
  */
-#ifdef APACHE2
 void *create_mysql_auth_dir_config(apr_pool_t *p, char *d)
-#else
-void *create_mysql_auth_dir_config(pool *p, char *d)
-#endif
 {
 #ifdef DEBUG
 	int i;
@@ -415,11 +358,8 @@ void *create_mysql_auth_dir_config(pool *p, char *d)
 	 * be sure to close the DB connection, if it exists.  If this does
 	 * not happen, we are in a world of pain.
 	 */
-#ifdef APACHE2
+
 	apr_pool_cleanup_register(p, sec, auth_mysql_cleanup, apr_pool_cleanup_null);
-#else
-	ap_register_cleanup(p, sec, auth_mysql_cleanup, ap_null_cleanup);
-#endif
 
 #if APR_HAS_THREADS	
 	apr_thread_mutex_create(&sec->lock, APR_THREAD_MUTEX_DEFAULT, p);
@@ -520,11 +460,7 @@ static const char *set_scrambled_password_flag(cmd_parms *cmd, void *sconf, int 
 /* Ensure that any string passed through us won't unduly upset the MySQL
  * server when passed in as part of a query.
  */
-#ifdef APACHE2
 static char *mysql_escape(mysql_auth_config_rec *sec, request_rec *r, char *str, apr_pool_t *p)
-#else
-static char *mysql_escape(mysql_auth_config_rec *sec, request_rec *r, char *str, pool *p)
-#endif
 {
 	char *dest;
 	
@@ -698,7 +634,6 @@ static const char *set_authoritative(cmd_parms *cmd, void *sconf, int arg)
  * what to do when we find it.  Pretty cool, IMHO.
  */
 
-#ifdef APACHE2
 static
 command_rec mysql_auth_cmds[] = {
    AP_INIT_TAKE3( "AuthMySQL_Info",	set_auth_mysql_info,
@@ -845,312 +780,16 @@ command_rec mysql_auth_cmds[] = {
 
   { NULL }
 };
-#else
-command_rec mysql_auth_cmds[] = {
-	{ "Auth_MySQL_Info",			set_auth_mysql_info,
-	  NULL,
-	  RSRC_CONF,	TAKE3,	"host, user and password of the MySQL database" },
 
-	{ "AuthMySQL_Info",			set_auth_mysql_info,
-	  NULL,
-	  RSRC_CONF,	TAKE3,	"host, user and password of the MySQL database" },
-
-	{ "Auth_MySQL_DefaultHost",		set_auth_mysql_host,
-	  NULL,
-	  RSRC_CONF,	TAKE1,	"Default MySQL host" },
-
-	{ "AuthMySQL_DefaultHost",		set_auth_mysql_host,
-	  NULL,
-	  RSRC_CONF,	TAKE1,	"Default MySQL host" },
-
-	{ "Auth_MySQL_DefaultUser",		set_auth_mysql_user,
-	  NULL,
-	  RSRC_CONF,	TAKE1,	"Default MySQL user" },
-
-	{ "AuthMySQL_DefaultUser",		set_auth_mysql_user,
-	  NULL,
-	  RSRC_CONF,	TAKE1,	"Default MySQL user" },
-
-	{ "Auth_MySQL_DefaultPassword",		set_auth_mysql_pwd,
-	  NULL,
-	  RSRC_CONF,	TAKE1,	"Default MySQL password" },
-
-	{ "AuthMySQL_DefaultPassword",		set_auth_mysql_pwd,
-	  NULL,
-	  RSRC_CONF,	TAKE1,	"Default MySQL password" },
-
-	{ "Auth_MySQL_DefaultPort",		set_auth_mysql_port,
-	  NULL,
-	  RSRC_CONF,	TAKE1,  "Default MySQL server port" },
-	
-	{ "AuthMySQL_DefaultPort",		set_auth_mysql_port,
-	  NULL,
-	  RSRC_CONF,	TAKE1,  "Default MySQL server port" },
-	
-	{ "Auth_MySQL_DefaultSocket",		set_auth_mysql_socket,
-	  NULL,
-	  RSRC_CONF,    TAKE1,  "Default MySQL server socket" },
-	  	
-	{ "AuthMySQL_DefaultSocket",		set_auth_mysql_socket,
-	  NULL,
-	  RSRC_CONF,    TAKE1,  "Default MySQL server socket" },
-	  	
-	{ "Auth_MySQL_General_DB",		set_auth_mysql_db,
-	  NULL,
-	  RSRC_CONF,	TAKE1,	"default database for MySQL authentication" },
-	  
-	{ "AuthMySQL_General_DB",		set_auth_mysql_db,
-	  NULL,
-	  RSRC_CONF,	TAKE1,	"default database for MySQL authentication" },
-	  
-	{ "Auth_MySQL_DefaultDB",		set_auth_mysql_db,
-	  NULL,
-	  RSRC_CONF,	TAKE1,	"default database for MySQL authentication" },
-
-	{ "AuthMySQL_DefaultDB",		set_auth_mysql_db,
-	  NULL,
-	  RSRC_CONF,	TAKE1,	"default database for MySQL authentication" },
-
-	{ "Auth_MySQL_Host",			ap_set_string_slot,
-	  (void *) XtOffsetOf(mysql_auth_config_rec, db_host),
-	  OR_AUTHCFG,	TAKE1,	"database host" },
-
-	{ "AuthMySQL_Host",			ap_set_string_slot,
-	  (void *) XtOffsetOf(mysql_auth_config_rec, db_host),
-	  OR_AUTHCFG,	TAKE1,	"database host" },
-
-	{ "Auth_MySQL_Socket",			ap_set_string_slot,
-	  (void *) XtOffsetOf(mysql_auth_config_rec, db_socket),
-	  OR_AUTHCFG,	TAKE1,	"database host socket" },
-
-	{ "AuthMySQL_Socket",			ap_set_string_slot,
-	  (void *) XtOffsetOf(mysql_auth_config_rec, db_socket),
-	  OR_AUTHCFG,	TAKE1,	"database host socket" },
-
-	{ "Auth_MySQL_Port",			ap_set_int_slot,
-	  (void *) XtOffsetOf(mysql_auth_config_rec, db_port),
-	  OR_AUTHCFG,	TAKE1,	"database host socket" },
-
-	{ "AuthMySQL_Port",			ap_set_int_slot,
-	  (void *) XtOffsetOf(mysql_auth_config_rec, db_port),
-	  OR_AUTHCFG,	TAKE1,	"database host socket" },
-
-	{ "Auth_MySQL_Username",		ap_set_string_slot,
-	  (void *) XtOffsetOf(mysql_auth_config_rec, db_user),
-	  OR_AUTHCFG,	TAKE1,	"database user" },
-	  
-	{ "AuthMySQL_Username",		ap_set_string_slot,
-	  (void *) XtOffsetOf(mysql_auth_config_rec, db_user),
-	  OR_AUTHCFG,	TAKE1,	"database user" },
-	  
-	{ "Auth_MySQL_User",			ap_set_string_slot,
-	  (void *) XtOffsetOf(mysql_auth_config_rec, db_user),
-	  OR_AUTHCFG,	TAKE1,	"database user" },
-	  
-	{ "AuthMySQL_User",			ap_set_string_slot,
-	  (void *) XtOffsetOf(mysql_auth_config_rec, db_user),
-	  OR_AUTHCFG,	TAKE1,	"database user" },
-	  
-	{ "Auth_MySQL_Password",		ap_set_string_slot,
-	  (void *) XtOffsetOf(mysql_auth_config_rec, db_pwd),
-	  OR_AUTHCFG,	TAKE1,	"database password" },
-	  
-	{ "AuthMySQL_Password",			ap_set_string_slot,
-	  (void *) XtOffsetOf(mysql_auth_config_rec, db_pwd),
-	  OR_AUTHCFG,	TAKE1,	"database password" },
-	  
-	{ "Auth_MySQL_DB",			ap_set_string_slot,
-	  (void *) XtOffsetOf(mysql_auth_config_rec, db_name),
-	  OR_AUTHCFG,	TAKE1,	"database name" },
-	  
-	{ "AuthMySQL_DB",			ap_set_string_slot,
-	  (void *) XtOffsetOf(mysql_auth_config_rec, db_name),
-	  OR_AUTHCFG,	TAKE1,	"database name" },
-	  
-	{ "Auth_MySQL_CharacterSet",			ap_set_string_slot,
-	  (void *) XtOffsetOf(mysql_auth_config_rec, db_charset),
-	  OR_AUTHCFG,	TAKE1,	"character set" },
-	  
-	{ "AuthMySQL_CharacterSet",			ap_set_string_slot,
-	  (void *) XtOffsetOf(mysql_auth_config_rec, db_charset),
-	  OR_AUTHCFG,	TAKE1,	"character set" },
-	  
-	{ "Auth_MySQL_Password_Table",		ap_set_string_slot,
-	  (void *) XtOffsetOf(mysql_auth_config_rec, user_table),
-	  OR_AUTHCFG,	TAKE1,	"Name of the MySQL table containing the password/user-name combination" },
-	  
-	{ "AuthMySQL_Password_Table",		ap_set_string_slot,
-	  (void *) XtOffsetOf(mysql_auth_config_rec, user_table),
-	  OR_AUTHCFG,	TAKE1,	"Name of the MySQL table containing the password/user-name combination" },
-	  
-	{ "Auth_MySQL_Group_Table",		ap_set_string_slot,
-	  (void *) XtOffsetOf(mysql_auth_config_rec, group_table),
-	  OR_AUTHCFG,	TAKE1,	"Name of the MySQL table containing the group-name/user-name combination; can be the same as the password-table." },
-	  
-	{ "AuthMySQL_Group_Table",		ap_set_string_slot,
-	  (void *) XtOffsetOf(mysql_auth_config_rec, group_table),
-	  OR_AUTHCFG,	TAKE1,	"Name of the MySQL table containing the group-name/user-name combination; can be the same as the password-table." },
-	  
-	{ "Auth_MySQL_Group_Clause",		ap_set_string_slot,
-	  (void *) XtOffsetOf(mysql_auth_config_rec, group_where_clause),
-	  OR_AUTHCFG,	TAKE1,  "Additional WHERE clause for group/user-name lookup" },
-	  
-	{ "AuthMySQL_Group_Clause",		ap_set_string_slot,
-	  (void *) XtOffsetOf(mysql_auth_config_rec, group_where_clause),
-	  OR_AUTHCFG,	TAKE1,  "Additional WHERE clause for group/user-name lookup" },
-	  
-	{ "Auth_MySQL_Password_Field",		ap_set_string_slot,
-	  (void *) XtOffsetOf(mysql_auth_config_rec, password_field),
-	  OR_AUTHCFG,	TAKE1,	"The name of the field in the MySQL password table" },
-
-	{ "AuthMySQL_Password_Field",		ap_set_string_slot,
-	  (void *) XtOffsetOf(mysql_auth_config_rec, password_field),
-	  OR_AUTHCFG,	TAKE1,	"The name of the field in the MySQL password table" },
-
-	{ "Auth_MySQL_Password_Clause",		ap_set_string_slot,
-	  (void *) XtOffsetOf(mysql_auth_config_rec, password_where_clause),
-	  OR_AUTHCFG,	TAKE1,  "Additional WHERE clause for group password/user-name lookup" },
-
-	{ "AuthMySQL_Password_Clause",		ap_set_string_slot,
-	  (void *) XtOffsetOf(mysql_auth_config_rec, password_where_clause),
-	  OR_AUTHCFG,	TAKE1,  "Additional WHERE clause for group password/user-name lookup" },
-
-	{ "Auth_MySQL_Username_Field",		ap_set_string_slot,
-	  (void *) XtOffsetOf(mysql_auth_config_rec, user_field),
-	  OR_AUTHCFG,	TAKE1,	"The name of the user-name field in the MySQL password (and possibly group) table(s)." },
-	  
-	{ "AuthMySQL_Username_Field",		ap_set_string_slot,
-	  (void *) XtOffsetOf(mysql_auth_config_rec, user_field),
-	  OR_AUTHCFG,	TAKE1,	"The name of the user-name field in the MySQL password (and possibly group) table(s)." },
-	  
-	{ "Auth_MySQL_Group_Field",		ap_set_string_slot,
-	  (void *) XtOffsetOf(mysql_auth_config_rec, group_field),
-	  OR_AUTHCFG,	TAKE1,	"The name of the group field in the MySQL group table; must be set if you want to use groups." },
-
-	{ "AuthMySQL_Group_Field",		ap_set_string_slot,
-	  (void *) XtOffsetOf(mysql_auth_config_rec, group_field),
-	  OR_AUTHCFG,	TAKE1,	"The name of the group field in the MySQL group table; must be set if you want to use groups." },
-
-	{ "Auth_MySQL_Group_User_Field",	ap_set_string_slot,
-	  (void *) XtOffsetOf(mysql_auth_config_rec, group_user_field),
-	  OR_AUTHCFG,	TAKE1,	"The name of the user-name field in the MySQL group table; defaults to the same as the username field for the password table." },
-
-	{ "AuthMySQL_Group_User_Field",		ap_set_string_slot,
-	  (void *) XtOffsetOf(mysql_auth_config_rec, group_user_field),
-	  OR_AUTHCFG,	TAKE1,	"The name of the user-name field in the MySQL group table; defaults to the same as the username field for the password table." },
-
-	{ "Auth_MySQL_Empty_Passwords",		set_empty_passwords,
-	  NULL,
-	  OR_AUTHCFG,	FLAG,	"Enable (on) or disable (off) empty password strings; in which case any user password is accepted." },
-
-	{ "AuthMySQL_Empty_Passwords",		set_empty_passwords,
-	  NULL,
-	  OR_AUTHCFG,	FLAG,	"Enable (on) or disable (off) empty password strings; in which case any user password is accepted." },
-
-	{ "Auth_MySQL_Authoritative",		set_authoritative,
-	  NULL,
-	  OR_AUTHCFG,	FLAG,	"When 'on' the MySQL database is taken to be authoritative and access control is not passed along to other db or access modules." },
-
-	{ "AuthMySQL_Authoritative",		set_authoritative,
-	  NULL,
-	  OR_AUTHCFG,	FLAG,	"When 'on' the MySQL database is taken to be authoritative and access control is not passed along to other db or access modules." },
-
-	{ "Auth_MySQL_AllowOverride",		set_auth_mysql_override,
-	  NULL,
-	  RSRC_CONF,	FLAG,	"Allow directory overrides of configuration" },
-
-	{ "AuthMySQL_AllowOverride",		set_auth_mysql_override,
-	  NULL,
-	  RSRC_CONF,	FLAG,	"Allow directory overrides of configuration" },
-
-	{ "Auth_MySQL_Encrypted_Passwords",	set_crypted_password_flag,
-	  NULL,
-	  OR_AUTHCFG,	FLAG,	"When 'on' the password in the password table are taken to be crypt()ed using your machines crypt() function." },
-
-	{ "AuthMySQL_Encrypted_Passwords",	set_crypted_password_flag,
-	  NULL,
-	  OR_AUTHCFG,	FLAG,	"When 'on' the password in the password table are taken to be crypt()ed using your machines crypt() function." },
-
-	{ "Auth_MySQL_Scrambled_Passwords",	set_scrambled_password_flag,
-	  NULL,
-	  OR_AUTHCFG,	FLAG,	"When 'on' the password in the password table are taken to be scramble()d using mySQL's password() function." },
-
-	{ "AuthMySQL_Scrambled_Passwords",	set_scrambled_password_flag,
-	  NULL,
-	  OR_AUTHCFG,	FLAG,	"When 'on' the password in the password table are taken to be scramble()d using mySQL's password() function." },
-
-	{ "Auth_MySQL_Encryption_Types",	set_encryption_types,
-	  NULL,
-	  OR_AUTHCFG,	ITERATE,"Encryption types to use" },
-
-	{ "AuthMySQL_Encryption_Types",		set_encryption_types,
-	  NULL,
-	  OR_AUTHCFG,	ITERATE,"Encryption types to use" },
-
-	{ "Auth_MySQL_Non_Persistent",		set_non_persistent,
-	  NULL,
-	  OR_AUTHCFG,	FLAG,	"Use non-persistent MySQL links" },
-
-	{ "AuthMySQL_Non_Persistent",		set_non_persistent,
-	  NULL,
-	  OR_AUTHCFG,	FLAG,	"Use non-persistent MySQL links" },
-
-	{ "Auth_MySQL_Persistent",		set_persistent,
-	  NULL,
-	  OR_AUTHCFG,	FLAG,	"Use non-persistent MySQL links" },
-
-	{ "AuthMySQL_Persistent",		set_persistent,
-	  NULL,
-	  OR_AUTHCFG,	FLAG,	"Use non-persistent MySQL links" },
-
-	{ "Auth_MySQL",				enable_mysql,
-	  NULL,
-	  OR_AUTHCFG,	FLAG,	"Enable MySQL authentication" },
-
-	{ "AuthMySQL",				enable_mysql,
-	  NULL,
-	  OR_AUTHCFG,	FLAG,	"Enable MySQL authentication" },
-
-	{ "Auth_MySQL_Where",			ap_set_string_slot,
-	  (void *) XtOffsetOf(mysql_auth_config_rec, password_where_clause),
-	  OR_AUTHCFG,	TAKE1,  "Additional WHERE clause for group password/user-name lookup" },
-
-	{ "AuthMySQL_Where",			ap_set_string_slot,
-	  (void *) XtOffsetOf(mysql_auth_config_rec, password_where_clause),
-	  OR_AUTHCFG,	TAKE1,  "Additional WHERE clause for group password/user-name lookup" },
-
-	{ NULL }
-};
-
-/*	{ "Auth_MySQL",				ap_set_flag_slot,		(void *) XtOffsetOf(mysql_auth_config_rec, enable_mysql_auth),		OR_AUTHCFG,	FLAG,	"Enable (on) or disable (off) MySQL authentication." },
-	{ "AuthMySQL",				ap_set_flag_slot,		(void *) XtOffsetOf(mysql_auth_config_rec, enable_mysql_auth),		OR_AUTHCFG,	FLAG,	"Enable (on) or disable (off) MySQL authentication." },
-*/
-
-
-#endif
-
-#ifdef APACHE2
-static apr_status_t
-#else
-static void
-#endif
-auth_mysql_result_cleanup(void *result)
+static apr_status_t auth_mysql_result_cleanup(void *result)
 {
 	mysql_free_result((MYSQL_RES *) result);
 }
 
-#ifdef APACHE2
-static void note_cleanups_for_mysql_auth_result(apr_pool_t *p, MYSQL_RES * result)
-#else
-static void note_cleanups_for_mysql_auth_result(pool *p, MYSQL_RES * result)
-#endif
-{
-#ifdef APACHE2
-	apr_pool_cleanup_register(p, (void *) result, auth_mysql_result_cleanup, auth_mysql_result_cleanup);
-#else
-	ap_register_cleanup(p, (void *) result, auth_mysql_result_cleanup, auth_mysql_result_cleanup);
-#endif
 
+static void note_cleanups_for_mysql_auth_result(apr_pool_t *p, MYSQL_RES * result)
+{
+	apr_pool_cleanup_register(p, (void *) result, auth_mysql_result_cleanup, auth_mysql_result_cleanup);
 }
 
 /* Make a MySQL database link open and ready for business.  Returns 0 on
@@ -1249,13 +888,7 @@ static int open_auth_dblink(request_rec *r, mysql_auth_config_rec *sec)
 
 	if (!sec->persistent) {
 		APACHELOG(APLOG_DEBUG, r, "Registering non-persistent for %s", sec->dir);
-#ifdef APACHE2
 		apr_pool_cleanup_register(r->pool, sec, auth_mysql_cleanup, apr_pool_cleanup_null);
-#else
-		ap_block_alarms();
-		ap_register_cleanup(r->pool, sec, auth_mysql_cleanup, ap_null_cleanup);
-		ap_unblock_alarms();
-#endif
 	}
 
 	if (sec->db_charset) {
@@ -1350,18 +983,10 @@ static int safe_mysql_query(request_rec *r, char *query, mysql_auth_config_rec *
  * so it will be tidied up after the request.
  * Returns the result data on success, or NULL if there was no data to retrieve.
  */
-#ifdef APACHE2
+
 static MYSQL_RES *safe_mysql_store_result(apr_pool_t *p, mysql_auth_config_rec *sec)
-#else
-static MYSQL_RES *safe_mysql_store_result(pool *p, mysql_auth_config_rec *sec)
-#endif
 {
 	MYSQL_RES *result;
-#ifdef APACHE2
-#else	
-	ap_block_alarms();
-#endif
-
 	result = mysql_store_result(sec->dbh);
 #ifdef DEBUG
 	syslog(LOG_DEBUG, "MAMDEBUG: Got %p for result", result);
@@ -1370,11 +995,6 @@ static MYSQL_RES *safe_mysql_store_result(pool *p, mysql_auth_config_rec *sec)
 	if (result) {
 		note_cleanups_for_mysql_auth_result(p, result);
 	}
-#ifdef APACHE2
-#else
-	ap_unblock_alarms();
-#endif
-
 	return result;
 }
 
@@ -1653,23 +1273,12 @@ int mysql_authenticate_basic_user(request_rec *r)
 		return res;
 	}
 
-#ifdef APACHE2
 	APACHELOG(APLOG_DEBUG, r,
 		"Starting basic user auth for [%s] in %s, child pid %i",
 		r->user,
 		sec->dir, getpid());
-#else
-	APACHELOG(APLOG_DEBUG, r,
-		"Starting basic user auth for [%s] in %s, child pid %i",
-		c->user,
-		sec->dir, getpid());
-#endif
 
-#ifdef APACHE2
-	switch (mysql_check_user_password(r, r->user, sent_pw, sec)) {
-#else
-	switch (mysql_check_user_password(r, c->user, sent_pw, sec)) {
-#endif
+		switch (mysql_check_user_password(r, r->user, sent_pw, sec)) {
 		case 0:
 			ap_note_basic_auth_failure(r);
 			return HTTP_UNAUTHORIZED;
@@ -1757,20 +1366,12 @@ int check_mysql_auth_require(char *user, const char *t, request_rec *r)
 int mysql_check_auth(request_rec *r)
 {
 	mysql_auth_config_rec *sec = (mysql_auth_config_rec *) ap_get_module_config(r->per_dir_config, &auth_mysql_module);
-#ifdef APACHE2
 	char *user = r->user;
-#else
-	char *user = r->connection->user;
-#endif
 	int m = r->method_number;
 	int rv;
 	register int x;
 	const char *t;
-#ifdef APACHE2
 	const apr_array_header_t *reqs_arr = ap_requires(r);
-#else
-	const array_header *reqs_arr = ap_requires(r);
-#endif
 	require_line *reqs;
 
 	/* use MySQL auth only if we have a database */
@@ -1833,15 +1434,12 @@ int mysql_check_auth(request_rec *r)
 
 
 
-#ifdef APACHE2
 static void register_hooks(apr_pool_t *p)
 {
 	ap_hook_check_user_id(mysql_authenticate_basic_user, NULL, NULL, APR_HOOK_MIDDLE);
 	ap_hook_auth_checker(mysql_check_auth, NULL, NULL, APR_HOOK_MIDDLE);
 }
-#endif
 
-#ifdef APACHE2
 module AP_MODULE_DECLARE_DATA auth_mysql_module =
 {
 STANDARD20_MODULE_STUFF,
@@ -1852,35 +1450,3 @@ NULL,                       /* merge server config */
 mysql_auth_cmds,              /* command apr_table_t */
 register_hooks              /* register hooks */
 };
-#else
-module auth_mysql_module =
-{
-	STANDARD_MODULE_STUFF,
-	mysql_auth_init_handler,	/* initializer */
-	create_mysql_auth_dir_config,	/* dir config creater */
-	NULL,				/* dir merger --- default is to override */
-	NULL,				/* server config */
-	NULL,				/* merge server config */
-	mysql_auth_cmds,		/* command table */
-	NULL,				/* handlers */
-	NULL,				/* filename translation */
-	mysql_authenticate_basic_user,	/* check_user_id */
-	mysql_check_auth,		/* check auth */
-	NULL,				/* check access */
-	NULL,				/* type_checker */
-	NULL,				/* pre-run fixups */
-	NULL				/* logger */
-#if MODULE_MAGIC_NUMBER >= 19970103
-	,NULL				/* header parser */
-#endif
-#if MODULE_MAGIC_NUMBER >= 19970719
-	,NULL				/* child_init */
-#endif
-#if MODULE_MAGIC_NUMBER >= 19970728
-	,NULL				/* child_exit */
-#endif
-#if MODULE_MAGIC_NUMBER >= 19970902
-	,NULL				/* post read-request */
-#endif
-};
-#endif
