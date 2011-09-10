@@ -701,103 +701,57 @@ static const char *set_authoritative(cmd_parms *cmd, void *sconf, int arg)
 #ifdef APACHE2
 static
 command_rec mysql_auth_cmds[] = {
-   AP_INIT_TAKE3( "Auth_MySQL_Info",	set_auth_mysql_info,
-   		  NULL,
-   		  RSRC_CONF,	"host, user and password of the MySQL database" ),
-
    AP_INIT_TAKE3( "AuthMySQL_Info",	set_auth_mysql_info,
    		  NULL,
    		  RSRC_CONF,	"host, user and password of the MySQL database" ),
-
-   AP_INIT_TAKE1( "Auth_MySQL_DefaultHost",	set_auth_mysql_host,
-		  NULL,
-		  RSRC_CONF,	"Default MySQL host" ),
 
    AP_INIT_TAKE1( "AuthMySQL_DefaultHost",	set_auth_mysql_host,
 		  NULL,
 		  RSRC_CONF,	"Default MySQL host" ),
 
-   AP_INIT_TAKE1( "Auth_MySQL_DefaultUser",	set_auth_mysql_user,
-		  NULL,
-		  RSRC_CONF,	"Default MySQL user" ),
-
    AP_INIT_TAKE1( "AuthMySQL_DefaultUser",	set_auth_mysql_user,
 		  NULL,
 		  RSRC_CONF,	"Default MySQL user" ),
-
-   AP_INIT_TAKE1( "Auth_MySQL_DefaultPassword",	set_auth_mysql_pwd,
-		  NULL,
-		  RSRC_CONF,	"Default MySQL password" ),
 
    AP_INIT_TAKE1( "AuthMySQL_DefaultPassword",	set_auth_mysql_pwd,
 		  NULL,
 		  RSRC_CONF,	"Default MySQL password" ),
 
-   AP_INIT_TAKE1( "Auth_MySQL_DefaultPort",	set_auth_mysql_port,
-		  NULL,
-		  RSRC_CONF,	"Default MySQL server port" ),
-	
    AP_INIT_TAKE1( "AuthMySQL_DefaultPort",	set_auth_mysql_port,
 		  NULL,
 		  RSRC_CONF,	"Default MySQL server port" ),
 	
-   AP_INIT_TAKE1( "Auth_MySQL_DefaultSocket",	set_auth_mysql_socket,
-		  NULL,
-		  RSRC_CONF,	"Default MySQL server socket" ),
+
 	  	
    AP_INIT_TAKE1( "AuthMySQL_DefaultSocket",	set_auth_mysql_socket,
 		  NULL,
 		  RSRC_CONF,	"Default MySQL server socket" ),
-	  	
-   AP_INIT_TAKE1( "Auth_MySQL_General_DB",	set_auth_mysql_db,
-		  NULL,
-		  RSRC_CONF,	"default database for MySQL authentication" ),
+
 
    AP_INIT_TAKE1( "AuthMySQL_General_DB",	set_auth_mysql_db,
 		  NULL,
 		  RSRC_CONF,	"default database for MySQL authentication" ),
 
-   AP_INIT_TAKE1( "Auth_MySQL_DefaultDB",	set_auth_mysql_db,
-		  NULL,
-		  RSRC_CONF,	"default database for MySQL authentication" ),
 
    AP_INIT_TAKE1( "AuthMySQL_DefaultDB",	set_auth_mysql_db,
 		  NULL,
 		  RSRC_CONF,	"default database for MySQL authentication" ),
 
-   AP_INIT_TAKE1( "Auth_MySQL_Host",	ap_set_string_slot,
-		  (void*)APR_OFFSETOF(mysql_auth_config_rec, db_host),
-		  OR_AUTHCFG,	"database host" ),
 
    AP_INIT_TAKE1( "AuthMySQL_Host",	ap_set_string_slot,
 		  (void*)APR_OFFSETOF(mysql_auth_config_rec, db_host),
 		  OR_AUTHCFG,	"database host" ),
 
-   AP_INIT_TAKE1( "Auth_MySQL_Socket",	ap_set_string_slot,
-		  (void*)APR_OFFSETOF(mysql_auth_config_rec, db_socket),
-		  OR_AUTHCFG,	"database host socket" ),
-
    AP_INIT_TAKE1( "AuthMySQL_Socket",	ap_set_string_slot,
 		  (void*)APR_OFFSETOF(mysql_auth_config_rec, db_socket),
 		  OR_AUTHCFG,	"database host socket" ),
 
-   AP_INIT_TAKE1( "Auth_MySQL_Port",	ap_set_int_slot,
-		  (void*)APR_OFFSETOF(mysql_auth_config_rec, db_port),
-		  OR_AUTHCFG,	"database host port" ),
 
    AP_INIT_TAKE1( "AuthMySQL_Port",	ap_set_int_slot,
 		  (void*)APR_OFFSETOF(mysql_auth_config_rec, db_port),
 		  OR_AUTHCFG,	"database host port" ),
 
-   AP_INIT_TAKE1( "Auth_MySQL_Username",	ap_set_string_slot,
-		  (void*)APR_OFFSETOF(mysql_auth_config_rec, db_user),
-		  OR_AUTHCFG,	"database user" ),
-
    AP_INIT_TAKE1( "AuthMySQL_Username",	ap_set_string_slot,
-		  (void*)APR_OFFSETOF(mysql_auth_config_rec, db_user),
-		  OR_AUTHCFG,	"database user" ),
-
-   AP_INIT_TAKE1( "Auth_MySQL_User",	ap_set_string_slot,
 		  (void*)APR_OFFSETOF(mysql_auth_config_rec, db_user),
 		  OR_AUTHCFG,	"database user" ),
 
@@ -805,151 +759,75 @@ command_rec mysql_auth_cmds[] = {
 		  (void*)APR_OFFSETOF(mysql_auth_config_rec, db_user),
 		  OR_AUTHCFG,	"database user" ),
 
-   AP_INIT_TAKE1( "Auth_MySQL_Password",	ap_set_string_slot,
-		  (void*)APR_OFFSETOF(mysql_auth_config_rec, db_pwd),
-		  OR_AUTHCFG,	"database password" ),
-
    AP_INIT_TAKE1( "AuthMySQL_Password",			ap_set_string_slot,
 		  (void*)APR_OFFSETOF(mysql_auth_config_rec, db_pwd),
 		  OR_AUTHCFG,	"database password" ),
-
-   AP_INIT_TAKE1( "Auth_MySQL_DB",		ap_set_string_slot,
-		  (void*)APR_OFFSETOF(mysql_auth_config_rec, db_name),
-		  OR_AUTHCFG,	"database name" ),
 
    AP_INIT_TAKE1( "AuthMySQL_DB",	ap_set_string_slot,
 		  (void*)APR_OFFSETOF(mysql_auth_config_rec, db_name),
 		  OR_AUTHCFG,	"database name" ),
 
-   AP_INIT_TAKE1( "Auth_MySQL_CharacterSet",		ap_set_string_slot,
-		  (void*)APR_OFFSETOF(mysql_auth_config_rec, db_charset),
-		  OR_AUTHCFG,	"character set" ),
-
    AP_INIT_TAKE1( "AuthMySQL_CharacterSet",	ap_set_string_slot,
 		  (void*)APR_OFFSETOF(mysql_auth_config_rec, db_charset),
 		  OR_AUTHCFG,	"character set" ),
-
-   AP_INIT_TAKE1( "Auth_MySQL_Password_Table",		ap_set_string_slot,
-		  (void*)APR_OFFSETOF(mysql_auth_config_rec, user_table),
-		  OR_AUTHCFG,	"Name of the MySQL table containing the password/user-name combination" ),
 
    AP_INIT_TAKE1( "AuthMySQL_Password_Table",		ap_set_string_slot,
 		  (void*)APR_OFFSETOF(mysql_auth_config_rec, user_table),
 		  OR_AUTHCFG,	"Name of the MySQL table containing the password/user-name combination" ),
 
-   AP_INIT_TAKE1( "Auth_MySQL_Group_Table",		ap_set_string_slot,
-		  (void*)APR_OFFSETOF(mysql_auth_config_rec, group_table),
-		  OR_AUTHCFG,	"Name of the MySQL table containing the group-name/user-name combination; can be the same as the password-table." ),
-
    AP_INIT_TAKE1( "AuthMySQL_Group_Table",		ap_set_string_slot,
 		  (void*)APR_OFFSETOF(mysql_auth_config_rec, group_table),
 		  OR_AUTHCFG,	"Name of the MySQL table containing the group-name/user-name combination; can be the same as the password-table." ),
 
-   AP_INIT_TAKE1( "Auth_MySQL_Group_Clause",		ap_set_string_slot,
+   AP_INIT_TAKE1( "AuthMySQL_Group_Where",		ap_set_string_slot,
 		  (void*)APR_OFFSETOF(mysql_auth_config_rec, group_where_clause),
 		  OR_AUTHCFG,	"Additional WHERE clause for group/user-name lookup" ),
-
-   AP_INIT_TAKE1( "AuthMySQL_Group_Clause",		ap_set_string_slot,
-		  (void*)APR_OFFSETOF(mysql_auth_config_rec, group_where_clause),
-		  OR_AUTHCFG,	"Additional WHERE clause for group/user-name lookup" ),
-
-   AP_INIT_TAKE1( "Auth_MySQL_Password_Field",		ap_set_string_slot,
-		  (void*)APR_OFFSETOF(mysql_auth_config_rec, password_field),
-		  OR_AUTHCFG,	"The name of the field in the MySQL password table" ),
 
    AP_INIT_TAKE1( "AuthMySQL_Password_Field",		ap_set_string_slot,
 		  (void*)APR_OFFSETOF(mysql_auth_config_rec, password_field),
 		  OR_AUTHCFG,	"The name of the field in the MySQL password table" ),
 
-   AP_INIT_TAKE1( "Auth_MySQL_Password_Clause",		ap_set_string_slot,
+   AP_INIT_TAKE1( "AuthMySQL_Password_Where",		ap_set_string_slot,
 		  (void*)APR_OFFSETOF(mysql_auth_config_rec, password_where_clause),
 		  OR_AUTHCFG,	"Additional WHERE clause for group password/user-name lookup" ),
-
-   AP_INIT_TAKE1( "AuthMySQL_Password_Clause",		ap_set_string_slot,
-		  (void*)APR_OFFSETOF(mysql_auth_config_rec, password_where_clause),
-		  OR_AUTHCFG,	"Additional WHERE clause for group password/user-name lookup" ),
-
-   AP_INIT_TAKE1( "Auth_MySQL_Username_Field",		ap_set_string_slot,
-		  (void*)APR_OFFSETOF(mysql_auth_config_rec, user_field),
-		  OR_AUTHCFG,	"The name of the user-name field in the MySQL password (and possibly group) table(s)." ),
 
    AP_INIT_TAKE1( "AuthMySQL_Username_Field",		ap_set_string_slot,
 		  (void*)APR_OFFSETOF(mysql_auth_config_rec, user_field),
 		  OR_AUTHCFG,	"The name of the user-name field in the MySQL password (and possibly group) table(s)." ),
 
-   AP_INIT_TAKE1( "Auth_MySQL_Group_Field",		ap_set_string_slot,
-		  (void*)APR_OFFSETOF(mysql_auth_config_rec, group_field),
-		  OR_AUTHCFG,	"The name of the group field in the MySQL group table; must be set if you want to use groups." ),
-
    AP_INIT_TAKE1( "AuthMySQL_Group_Field",		ap_set_string_slot,
 		  (void*)APR_OFFSETOF(mysql_auth_config_rec, group_field),
 		  OR_AUTHCFG,	"The name of the group field in the MySQL group table; must be set if you want to use groups." ),
-
-   AP_INIT_TAKE1( "Auth_MySQL_Group_User_Field",	ap_set_string_slot,
-		  (void*)APR_OFFSETOF(mysql_auth_config_rec, group_user_field),
-		  OR_AUTHCFG,	"The name of the user-name field in the MySQL group table; defaults to the same as the username field for the password table." ),
 
    AP_INIT_TAKE1( "AuthMySQL_Group_User_Field",		ap_set_string_slot,
 		  (void*)APR_OFFSETOF(mysql_auth_config_rec, group_user_field),
 		  OR_AUTHCFG,	"The name of the user-name field in the MySQL group table; defaults to the same as the username field for the password table." ),
 
-   AP_INIT_FLAG( "Auth_MySQL_Empty_Passwords",		set_empty_passwords,
-		 NULL,
-		 OR_AUTHCFG,	"Enable (on) or disable (off) empty password strings; in which case any user password is accepted." ),
-
    AP_INIT_FLAG( "AuthMySQL_Empty_Passwords",		set_empty_passwords,
 		 NULL,
 		 OR_AUTHCFG,	"Enable (on) or disable (off) empty password strings; in which case any user password is accepted." ),
-
-   AP_INIT_FLAG( "Auth_MySQL_Authoritative",		set_authoritative,
-		 NULL,
-		 OR_AUTHCFG,	"When 'on' the MySQL database is taken to be authoritative and access control is not passed along to other db or access modules." ),
 
    AP_INIT_FLAG( "AuthMySQL_Authoritative",		set_authoritative,
 		 NULL,
 		 OR_AUTHCFG,	"When 'on' the MySQL database is taken to be authoritative and access control is not passed along to other db or access modules." ),
 
-   AP_INIT_FLAG( "Auth_MySQL_AllowOverride",		set_auth_mysql_override,
-		 NULL,
-		 RSRC_CONF,	"Allow directory overrides of configuration" ),
-
    AP_INIT_FLAG( "AuthMySQL_AllowOverride",		set_auth_mysql_override,
 		 NULL,
 		 RSRC_CONF,	"Allow directory overrides of configuration" ),
-
-   AP_INIT_FLAG( "Auth_MySQL_Encrypted_Passwords",	set_crypted_password_flag,
-		 NULL,
-		 OR_AUTHCFG,	"When 'on' the password in the password table are taken to be crypt()ed using your machines crypt() function." ),
 
    AP_INIT_FLAG( "AuthMySQL_Encrypted_Passwords",	set_crypted_password_flag,
 		  NULL,
 		  OR_AUTHCFG,	"When 'on' the password in the password table are taken to be crypt()ed using your machines crypt() function." ),
 
-   AP_INIT_FLAG( "Auth_MySQL_Scrambled_Passwords",	set_scrambled_password_flag,
-		 NULL,
-		 OR_AUTHCFG,	"When 'on' the password in the password table are taken to be scramble()d using mySQL's password() function." ),
-
    AP_INIT_FLAG( "AuthMySQL_Scrambled_Passwords",	set_scrambled_password_flag,
 		 NULL,
 		 OR_AUTHCFG,	"When 'on' the password in the password table are taken to be scramble()d using mySQL's password() function." ),
-
-   AP_INIT_ITERATE( "Auth_MySQL_Encryption_Types",	set_encryption_types,
-		  NULL,
-		  OR_AUTHCFG,	"Encryption types to use" ),
 
    AP_INIT_ITERATE( "AuthMySQL_Encryption_Types",		set_encryption_types,
 		  NULL,
 		  OR_AUTHCFG,	"Encryption types to use" ),
 
-   AP_INIT_FLAG( "Auth_MySQL_Non_Persistent",		set_non_persistent,
-		 NULL,
-		 OR_AUTHCFG,	"Use non-persistent MySQL links" ),
-
    AP_INIT_FLAG( "AuthMySQL_Non_Persistent",		set_non_persistent,
-		 NULL,
-		 OR_AUTHCFG,	"Use non-persistent MySQL links" ),
-
-   AP_INIT_FLAG( "Auth_MySQL_Persistent",		set_persistent,
 		 NULL,
 		 OR_AUTHCFG,	"Use non-persistent MySQL links" ),
 
@@ -957,17 +835,9 @@ command_rec mysql_auth_cmds[] = {
 		 NULL,
 		 OR_AUTHCFG,	"Use non-persistent MySQL links" ),
 
-   AP_INIT_FLAG( "Auth_MySQL",		enable_mysql,
-		 NULL,
-		 OR_AUTHCFG,	"Enable MySQL authentication" ),
-
    AP_INIT_FLAG( "AuthMySQL",		enable_mysql,
 		 NULL,
 		 OR_AUTHCFG,	"Enable MySQL authentication" ),
-
-   AP_INIT_TAKE1( "Auth_MySQL_Where",		ap_set_string_slot,
-		  (void*)APR_OFFSETOF(mysql_auth_config_rec, password_where_clause),
-		  OR_AUTHCFG,	"Additional WHERE clause for group password/user-name lookup" ),
 
    AP_INIT_TAKE1( "AuthMySQL_Where",		ap_set_string_slot,
 		  (void*)APR_OFFSETOF(mysql_auth_config_rec, password_where_clause),
