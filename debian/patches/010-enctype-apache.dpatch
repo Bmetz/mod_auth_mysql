@@ -1,0 +1,57 @@
+#! /bin/sh /usr/share/dpatch/dpatch-run
+## 010-enctype-apache.dpatch by Andreas Barth <aba@not.so.argh.org>
+##                              Joey Schulze <joey@infodrom.org>
+##
+## All lines beginning with `## DP:' are a description of the patch.
+## DP: Provide an Apache authentication method
+
+@DPATCH@
+diff -urNad mod-auth-mysql~/DIRECTIVES mod-auth-mysql/DIRECTIVES
+--- mod-auth-mysql~/DIRECTIVES	2008-05-15 12:55:28.000000000 +0200
++++ mod-auth-mysql/DIRECTIVES	2008-05-15 12:55:29.000000000 +0200
+@@ -194,6 +194,10 @@
+ 
+ 	MySQL
+ 		The hashing scheme used by the MySQL PASSWORD() function.
++	
++	Apache
++		The hashing scheme used by htpasswd utility. Compatible to
++		authuserfile.
+ 		
+ Auth_MySQL_Encrypted_Passwords <on/off> (DEPRECATED)
+ 	Equivalent to: Auth_MySQL_Encryption_Types Crypt_DES
+diff -urNad mod-auth-mysql~/mod_auth_mysql.c mod-auth-mysql/mod_auth_mysql.c
+--- mod-auth-mysql~/mod_auth_mysql.c	2008-05-15 12:55:28.000000000 +0200
++++ mod-auth-mysql/mod_auth_mysql.c	2008-05-15 12:56:28.000000000 +0200
+@@ -103,6 +103,7 @@
+ #define CRYPT_ENCRYPTION_FLAG		1<<5
+ #endif
+ #define SHA1SUM_ENCRYPTION_FLAG		1<<6
++#define APACHE_ENCRYPTION_FLAG		1<<7
+ 
+ /* from include/sha1.h from the mysql-server source distribution */
+ #define SHA1_HASH_SIZE 20 /* Hash size in bytes */
+@@ -239,6 +240,15 @@
+ 	return (!strcmp(scrambled_passwd, enc_passwd));
+ }
+ 
++static int check_apache_encryption(const char *passwd, char *enc_passwd)
++{
++#ifdef APACHE2
++	return (!apr_password_validate(passwd, enc_passwd));
++#else
++	return (!ap_validate_password(passwd, enc_passwd));
++#endif
++}
++
+ typedef struct {
+ 	char *name;
+ 	int (*check_function)(const char *passwd, char *enc_passwd);
+@@ -257,6 +267,7 @@
+ 	{ "Crypt",		check_crypt_encryption,			CRYPT_ENCRYPTION_FLAG },
+ 	{ "PHP_MD5",		check_PHP_MD5_encryption,		PHP_MD5_ENCRYPTION_FLAG	},
+ 	{ "SHA1Sum",	check_SHA1Sum_encryption, SHA1SUM_ENCRYPTION_FLAG},
++	{ "Apache",		check_apache_encryption,		APACHE_ENCRYPTION_FLAG  },
+ 	/* add additional encryption types below */
+ 	{ NULL,			NULL,					0 }
+ };

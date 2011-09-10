@@ -1,0 +1,10 @@
+You'll need to have the development libraries and include files for both
+MySQL and Apache.  Both should be found automatically if they're installed
+somewhere reasonable, but otherwise, specify the location using the
+--with-mysql-includes, --with-mysql-libs, and --with-apxs options to
+configure (see ./configure --help for more information).
+
+Once configure has run successfully, you should be able to type 'make &&
+make install' for a happy installation.
+
+See USAGE for information on how exactly to use this beast.

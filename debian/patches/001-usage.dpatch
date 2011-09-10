@@ -1,0 +1,21 @@
+#! /bin/sh /usr/share/dpatch/dpatch-run
+## 001-usage.dpatch by Matthew Palmer <mpalmer@debian.org>
+##
+## DP: Explain the md5 and sha1 cryptographic methods better
+
+@DPATCH@
+
+--- orig/USAGE
++++ mod/USAGE
+@@ -18,7 +18,10 @@
+ 	primary key (username)
+ );
+ 
+-This would work quite well.
++This would work quite well.  Remember that the passwd field needs to be long
++enough to store the entire password string -- for example, if you are using
++MD5 passwords, passwd needs to be 32 characters long, and if you are using
++SHA1 it must be 40 characters long.
+ 
+ NOTE 1: You don't have to use a new table for the purpose of storing
+ usernames and passwords; I quite happily use a 'members' table (with all

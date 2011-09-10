@@ -1,0 +1,5 @@
+#!/bin/sh
+
+# Dummy file to make configure happy.  <shrug>
+
+exit 0

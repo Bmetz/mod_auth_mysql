@@ -1,0 +1,32 @@
+#! /bin/sh /usr/share/dpatch/dpatch-run
+## 011-auth_basic.dpatch by Joey Schulze <joey@infodrom.org>
+##
+## DP: Document problems with other authentication modules
+
+@DPATCH@
+diff -urNad mod-auth-mysql~/USAGE mod-auth-mysql/USAGE
+--- mod-auth-mysql~/USAGE	2008-11-21 16:16:37.000000000 +0100
++++ mod-auth-mysql/USAGE	2008-11-21 16:24:41.000000000 +0100
+@@ -123,3 +123,22 @@
+ 
+ The full set of directives available are now listed in the file DIRECTIVES,
+ for ease of perusal.
++
++Disable other Auth methods
++--------------------------
++
++For some reason Apache has problems handing over authority to this
++module if this is requested an another auth module is also loaded.
++
++If you have another authentication module loaded, you'll have to
++disable it the hard way.
++
++AuthBasicAuthoritative Off
++AuthUserFile /dev/null
++
++The following option is not sufficient
++
++Auth_MySQL_Authoritative On
++
++If you experience similar problems with group membership, try
++repeating the same procedure with AuthGroupFile.

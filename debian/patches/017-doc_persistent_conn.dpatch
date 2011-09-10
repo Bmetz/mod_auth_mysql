@@ -1,0 +1,21 @@
+#! /bin/sh /usr/share/dpatch/dpatch-run
+## 017-doc_persistent_conn.dpatch by Imran Chaudhry <imran@smoothwall.net>
+##
+## All lines beginning with `## DP:' are a description of the patch.
+## DP: Add information about MySQL connection timeout
+
+diff -urNad mod-auth-mysql~/DIRECTIVES mod-auth-mysql/DIRECTIVES
+--- mod-auth-mysql~/DIRECTIVES	2010-01-27 16:12:27.000000000 +0100
++++ mod-auth-mysql/DIRECTIVES	2010-01-27 17:04:45.000000000 +0100
+@@ -239,6 +239,11 @@
+ 	increase the maximum number of simultaneous threads in MySQL and
+ 	keep this option off.  Default: off, and for good reason.
+ 
++	Please bear in mind that modern MySQL installations appear to have a
++	connection timeout of 28000 seconds (8 hours), one may want to lower
++	this to 30 (max_connections) if you have very busy site and are
++	observing spikes containing a large number of connection threads.
++
+ Auth_MySQL_Persistent <on/off>
+ 	An antonym for Auth_MySQL_Non_Persistent.
+ 

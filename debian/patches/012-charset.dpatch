@@ -1,0 +1,126 @@
+#! /bin/sh /usr/share/dpatch/dpatch-run
+## 012-charset.dpatch by Joey Schulze <joey@infodrom.org>
+##
+## DP: Add support for specifying the connection character set
+## DP: via Auth_MySQL_CharacterSet.
+
+@DPATCH@
+diff -urNad mod-auth-mysql~/DIRECTIVES mod-auth-mysql/DIRECTIVES
+--- mod-auth-mysql~/DIRECTIVES	2008-11-21 17:05:40.000000000 +0100
++++ mod-auth-mysql/DIRECTIVES	2008-11-21 17:05:40.000000000 +0100
+@@ -74,6 +74,18 @@
+ Auth_MySQL_DefaultDB <database_name>
+ 	Synonym for Auth_MySQL_General_DB.
+ 
++Auth_MySQL_CharacterSet <character set>
++
++	Set the connection character set to the specified one.  Otherwise no
++	particular character set is used when the connection is created.
++	This could cause problems with differently encoded strings and table
++	or column collations.  The parameter must be a valid MySQL
++	character.  It is mandatory if the character set used for tables/rows
++	differs from the default.
++
++AuthMySQL_CharacterSet <character set>
++        Synonym for Auth_MySQL_CharacterSet.
++
+ AuthName "<Realm>"
+ 	Describes the data you're guarding.
+ 
+diff -urNad mod-auth-mysql~/mod_auth_mysql.c mod-auth-mysql/mod_auth_mysql.c
+--- mod-auth-mysql~/mod_auth_mysql.c	2008-11-21 17:05:40.000000000 +0100
++++ mod-auth-mysql/mod_auth_mysql.c	2008-11-21 17:05:50.000000000 +0100
+@@ -299,6 +299,7 @@
+ 	char *db_user;
+ 	char *db_pwd;
+ 	char *db_name;
++	char *db_charset;
+ 	
+ 	MYSQL *dbh;
+ 
+@@ -344,6 +345,7 @@
+ #else
+ static void
+ #endif
++
+ auth_mysql_cleanup(void *ptr)
+ {
+ 	mysql_auth_config_rec *sec = ptr;
+@@ -395,7 +397,7 @@
+ 				sizeof(mysql_auth_config_rec));
+ #endif
+ 
+-	sec->db_name = sec->db_socket = sec->db_user = sec->db_pwd = NULL;
++	sec->db_name = sec->db_socket = sec->db_user = sec->db_pwd = sec->db_charset = NULL;
+ 
+ 	sec->dbh = NULL;
+ 	/* When the memory for this connection record is cleaned, we must
+@@ -804,6 +806,14 @@
+ 		  (void*)APR_OFFSETOF(mysql_auth_config_rec, db_name),
+ 		  OR_AUTHCFG,	"database name" ),
+ 
++   AP_INIT_TAKE1( "Auth_MySQL_CharacterSet",		ap_set_string_slot,
++		  (void*)APR_OFFSETOF(mysql_auth_config_rec, db_charset),
++		  OR_AUTHCFG,	"character set" ),
++
++   AP_INIT_TAKE1( "AuthMySQL_CharacterSet",	ap_set_string_slot,
++		  (void*)APR_OFFSETOF(mysql_auth_config_rec, db_charset),
++		  OR_AUTHCFG,	"character set" ),
++
+    AP_INIT_TAKE1( "Auth_MySQL_Password_Table",		ap_set_string_slot,
+ 		  (void*)APR_OFFSETOF(mysql_auth_config_rec, user_table),
+ 		  OR_AUTHCFG,	"Name of the MySQL table containing the password/user-name combination" ),
+@@ -1072,6 +1082,14 @@
+ 	  (void *) XtOffsetOf(mysql_auth_config_rec, db_name),
+ 	  OR_AUTHCFG,	TAKE1,	"database name" },
+ 	  
++	{ "Auth_MySQL_CharacterSet",			ap_set_string_slot,
++	  (void *) XtOffsetOf(mysql_auth_config_rec, db_charset),
++	  OR_AUTHCFG,	TAKE1,	"character set" },
++	  
++	{ "AuthMySQL_CharacterSet",			ap_set_string_slot,
++	  (void *) XtOffsetOf(mysql_auth_config_rec, db_charset),
++	  OR_AUTHCFG,	TAKE1,	"character set" },
++	  
+ 	{ "Auth_MySQL_Password_Table",		ap_set_string_slot,
+ 	  (void *) XtOffsetOf(mysql_auth_config_rec, user_table),
+ 	  OR_AUTHCFG,	TAKE1,	"Name of the MySQL table containing the password/user-name combination" },
+@@ -1264,6 +1282,7 @@
+ #if MYSQL_VERSION_ID >= 50013
+ 	my_bool do_reconnect = 1;
+ #endif
++	char *query;
+ 
+ 	APACHELOG(APLOG_DEBUG, r, "Opening DB connection for %s", sec->dir);
+ 	
+@@ -1354,6 +1373,30 @@
+ #endif
+ 	}
+ 
++	if (sec->db_charset) {
++		APACHELOG(APLOG_DEBUG, r,
++			"Setting character set to %s", sec->db_charset);
++
++		query = (char *) PSTRCAT(r->pool, "SET CHARACTER SET ", sec->db_charset, NULL);
++		if (!query) {
++			APACHELOG(APLOG_ERR, r,
++				"Failed to create query string - we're no good...");
++			return -1;
++		}
++
++		if (mysql_query(sec->dbh, query)) {
++			if (sec->dbh)
++			{
++				APACHELOG(APLOG_ERR, r,
++					"Query call failed: %s (%i)", mysql_error(sec->dbh),
++					mysql_errno(sec->dbh));
++			}
++
++			APACHELOG(APLOG_DEBUG, r, "Failed query was: [%s]", query);
++			return -1;
++		}
++	}
++
+ 	/* W00t!  We made it! */
+ 	return 0;
+ }

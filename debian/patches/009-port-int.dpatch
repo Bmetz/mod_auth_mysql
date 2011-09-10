@@ -1,0 +1,38 @@
+#! /bin/sh /usr/share/dpatch/dpatch-run
+## 009-port-int.dpatch by Lehel Bernadt <lehel@pmc-services.hu>
+##
+## All lines beginning with `## DP:' are a description of the patch.
+## DP: Adjust port to int
+
+@DPATCH@
+diff -urNad mod-auth-mysql~/mod_auth_mysql.c mod-auth-mysql/mod_auth_mysql.c
+--- mod-auth-mysql~/mod_auth_mysql.c	2008-05-15 08:44:54.000000000 +0200
++++ mod-auth-mysql/mod_auth_mysql.c	2008-05-15 08:45:35.000000000 +0200
+@@ -753,11 +753,11 @@
+ 		  (void*)APR_OFFSETOF(mysql_auth_config_rec, db_socket),
+ 		  OR_AUTHCFG,	"database host socket" ),
+ 
+-   AP_INIT_TAKE1( "Auth_MySQL_Port",	ap_set_string_slot,
++   AP_INIT_TAKE1( "Auth_MySQL_Port",	ap_set_int_slot,
+ 		  (void*)APR_OFFSETOF(mysql_auth_config_rec, db_port),
+ 		  OR_AUTHCFG,	"database host port" ),
+ 
+-   AP_INIT_TAKE1( "AuthMySQL_Port",	ap_set_string_slot,
++   AP_INIT_TAKE1( "AuthMySQL_Port",	ap_set_int_slot,
+ 		  (void*)APR_OFFSETOF(mysql_auth_config_rec, db_port),
+ 		  OR_AUTHCFG,	"database host port" ),
+ 
+@@ -1021,11 +1021,11 @@
+ 	  (void *) XtOffsetOf(mysql_auth_config_rec, db_socket),
+ 	  OR_AUTHCFG,	TAKE1,	"database host socket" },
+ 
+-	{ "Auth_MySQL_Port",			ap_set_string_slot,
++	{ "Auth_MySQL_Port",			ap_set_int_slot,
+ 	  (void *) XtOffsetOf(mysql_auth_config_rec, db_port),
+ 	  OR_AUTHCFG,	TAKE1,	"database host socket" },
+ 
+-	{ "AuthMySQL_Port",			ap_set_string_slot,
++	{ "AuthMySQL_Port",			ap_set_int_slot,
+ 	  (void *) XtOffsetOf(mysql_auth_config_rec, db_port),
+ 	  OR_AUTHCFG,	TAKE1,	"database host socket" },
+ 

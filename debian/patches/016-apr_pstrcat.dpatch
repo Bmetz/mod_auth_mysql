@@ -1,0 +1,17 @@
+#! /bin/sh /usr/share/dpatch/dpatch-run
+## 016-apr_pstrcat.dpatch by Peter Christensen <peter@developers.dk>
+##
+## All lines beginning with `## DP:' are a description of the patch.
+## DP: Add prototype for apr_pstrcat()
+
+diff -urNad mod-auth-mysql~/mod_auth_mysql.c mod-auth-mysql/mod_auth_mysql.c
+--- mod-auth-mysql~/mod_auth_mysql.c	2010-01-23 18:05:56.000000000 +0100
++++ mod-auth-mysql/mod_auth_mysql.c	2010-01-23 18:06:19.000000000 +0100
+@@ -51,6 +51,7 @@
+ #include <apr_general.h>
+ #include <apr_md5.h>
+ #include <apr_sha1.h>
++#include <apr_strings.h>
+ #else
+ #include <ap_md5.h>
+ #include <ap_sha1.h>

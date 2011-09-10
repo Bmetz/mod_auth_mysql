@@ -1,0 +1,43 @@
+LoadModule: auth_mysql_module /usr/lib/apache/1.3/mod_auth_mysql.so
+Directives:
+ Auth_MySQL_Info
+ AuthMySQL_DefaultHost
+ AuthMySQL_Host
+ AuthMySQL_DefaultUser
+ AuthMySQL_User
+ AuthMySQL_DefaultPassword
+ AuthMySQL_Password
+ Auth_MySQL_General_DB
+ Auth_MySQL_DB
+ AuthMySQL_DefaultDB
+ AuthMySQL_DB
+ Auth_MySQL_Username
+ Auth_MySQL_Password
+ Auth_MySQL_DB
+ Auth_MySQL_Password_Table
+ AuthMySQL_Password_Table
+ Auth_MySQL_Group_Table
+ Auth_MySQL_Password_Field
+ Auth_MySQL_Username_Field
+ Auth_MySQL_Group_Field
+ AuthMySQL_Group_Table
+ AuthMySQL_Password_Field
+ AuthMySQL_Username_Field
+ AuthMySQL_Group_Field
+ AuthMySQL_Group_User_Field
+ Auth_MySQL_Empty_Passwords
+ AuthMySQL_Empty_Passwords
+ Auth_MySQL_Authoritative
+ AuthMySQL_Authoritative
+ Auth_MySQL_Encrypted_Passwords
+ AuthMySQL_Encrypted_Passwords
+ Auth_MySQL_Scrambled_Passwords
+ AuthMySQL_Scrambled_Passwords
+ Auth_MySQL_Encryption_Types
+ AuthMySQL_Encryption_Types
+ Auth_MySQL_Non_Persistent
+ AuthMySQL_Persistent
+ AuthMySQL_AllowOverride
+ Auth_MySQL
+ AuthMySQL
+Description: Support for MySQL authentication

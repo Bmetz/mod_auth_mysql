@@ -1,0 +1,180 @@
+#! /bin/sh /usr/share/dpatch/dpatch-run
+## 003-ftbfs_apache2.2.dpatch by Julian Calaby <julian.calaby@gmail.com>
+##
+## DP: Fixes the FTBFS against apache2.2 (see #389579 for more information)
+
+@DPATCH@
+
+--- libapache-mod-auth-mysql-4.3.9.old/mod_auth_mysql.c	2006-11-21 15:07:43.000000000 +1100
++++ libapache-mod-auth-mysql-4.3.9/mod_auth_mysql.c	2006-11-21 16:42:29.000000000 +1100
+@@ -48,6 +48,7 @@
+ #include <http_log.h>
+ #ifdef APACHE2
+ #include "http_request.h"   /* for ap_hook_(check_user_id | auth_checker)*/
++#include <apr_general.h>
+ #include <apr_md5.h>
+ #include <apr_sha1.h>
+ #else
+@@ -684,123 +685,123 @@
+ 		  RSRC_CONF,	"default database for MySQL authentication" ),
+ 
+    AP_INIT_TAKE1( "AuthMySQL_Host",	ap_set_string_slot,
+-		  (void*)APR_XtOffsetOf(mysql_auth_config_rec, db_host),
++		  (void*)APR_OFFSETOF(mysql_auth_config_rec, db_host),
+ 		  OR_AUTHCFG,	"database host" ),
+ 
+    AP_INIT_TAKE1( "Auth_MySQL_Host",	ap_set_string_slot,
+-		  (void*)APR_XtOffsetOf(mysql_auth_config_rec, db_host),
++		  (void*)APR_OFFSETOF(mysql_auth_config_rec, db_host),
+ 		  OR_AUTHCFG,	"database host" ),
+ 
+    AP_INIT_TAKE1( "Auth_MySQL_Socket",	ap_set_string_slot,
+-		  (void*)APR_XtOffsetOf(mysql_auth_config_rec, db_socket),
++		  (void*)APR_OFFSETOF(mysql_auth_config_rec, db_socket),
+ 		  OR_AUTHCFG,	"database host socket" ),
+ 
+    AP_INIT_TAKE1( "AuthMySQL_Socket",	ap_set_string_slot,
+-		  (void*)APR_XtOffsetOf(mysql_auth_config_rec, db_socket),
++		  (void*)APR_OFFSETOF(mysql_auth_config_rec, db_socket),
+ 		  OR_AUTHCFG,	"database host socket" ),
+ 
+    AP_INIT_TAKE1( "Auth_MySQL_Port",	ap_set_string_slot,
+-		  (void*)APR_XtOffsetOf(mysql_auth_config_rec, db_port),
++		  (void*)APR_OFFSETOF(mysql_auth_config_rec, db_port),
+ 		  OR_AUTHCFG,	"database host port" ),
+ 
+    AP_INIT_TAKE1( "AuthMySQL_Port",	ap_set_string_slot,
+-		  (void*)APR_XtOffsetOf(mysql_auth_config_rec, db_port),
++		  (void*)APR_OFFSETOF(mysql_auth_config_rec, db_port),
+ 		  OR_AUTHCFG,	"database host port" ),
+ 
+    AP_INIT_TAKE1( "Auth_MySQL_Username",	ap_set_string_slot,
+-		  (void*)APR_XtOffsetOf(mysql_auth_config_rec, db_user),
++		  (void*)APR_OFFSETOF(mysql_auth_config_rec, db_user),
+ 		  OR_AUTHCFG,	"database user" ),
+ 
+    AP_INIT_TAKE1( "AuthMySQL_User",	ap_set_string_slot,
+-		  (void*)APR_XtOffsetOf(mysql_auth_config_rec, db_user),
++		  (void*)APR_OFFSETOF(mysql_auth_config_rec, db_user),
+ 		  OR_AUTHCFG,	"database user" ),
+ 
+    AP_INIT_TAKE1( "Auth_MySQL_Password",	ap_set_string_slot,
+-		(void*)APR_XtOffsetOf(mysql_auth_config_rec, db_pwd),
++		(void*)APR_OFFSETOF(mysql_auth_config_rec, db_pwd),
+ 		  OR_AUTHCFG,	"database password" ),
+ 
+    AP_INIT_TAKE1( "AuthMySQL_Password",			ap_set_string_slot,
+-		  (void*)APR_XtOffsetOf(mysql_auth_config_rec, db_pwd),
++		  (void*)APR_OFFSETOF(mysql_auth_config_rec, db_pwd),
+ 		  OR_AUTHCFG,	"database password" ),
+ 
+    AP_INIT_TAKE1( "Auth_MySQL_DB",		ap_set_string_slot,
+-		  (void*)APR_XtOffsetOf(mysql_auth_config_rec, db_name),
++		  (void*)APR_OFFSETOF(mysql_auth_config_rec, db_name),
+ 		  OR_AUTHCFG,	"database name" ),
+ 
+    AP_INIT_TAKE1( "AuthMySQL_DB",	ap_set_string_slot,
+-		  (void*)APR_XtOffsetOf(mysql_auth_config_rec, db_name),
++		  (void*)APR_OFFSETOF(mysql_auth_config_rec, db_name),
+ 		  OR_AUTHCFG,	"database name" ),
+ 
+    AP_INIT_TAKE1( "Auth_MySQL_Password_Table",		ap_set_string_slot,
+-		  (void*)APR_XtOffsetOf(mysql_auth_config_rec, user_table),
++		  (void*)APR_OFFSETOF(mysql_auth_config_rec, user_table),
+ 		  OR_AUTHCFG,	"Name of the MySQL table containing the password/user-name combination" ),
+ 
+    AP_INIT_TAKE1( "AuthMySQL_Password_Table",		ap_set_string_slot,
+-		  (void*)APR_XtOffsetOf(mysql_auth_config_rec, user_table),
++		  (void*)APR_OFFSETOF(mysql_auth_config_rec, user_table),
+ 		  OR_AUTHCFG,	"Name of the MySQL table containing the password/user-name combination" ),
+ 
+    AP_INIT_TAKE1( "Auth_MySQL_Group_Table",		ap_set_string_slot,
+-		  (void*)APR_XtOffsetOf(mysql_auth_config_rec, group_table),
++		  (void*)APR_OFFSETOF(mysql_auth_config_rec, group_table),
+ 		  OR_AUTHCFG,	"Name of the MySQL table containing the group-name/user-name combination; can be the same as the password-table." ),
+ 
+    AP_INIT_TAKE1( "Auth_MySQL_Group_Clause",		ap_set_string_slot,
+-		  (void*)APR_XtOffsetOf(mysql_auth_config_rec, group_where_clause),
++		  (void*)APR_OFFSETOF(mysql_auth_config_rec, group_where_clause),
+ 		  OR_AUTHCFG,	"Additional WHERE clause for group/user-name lookup" ),
+ 
+    AP_INIT_TAKE1( "AuthMySQL_Group_Table",		ap_set_string_slot,
+-		  (void*)APR_XtOffsetOf(mysql_auth_config_rec, group_table),
++		  (void*)APR_OFFSETOF(mysql_auth_config_rec, group_table),
+ 		  OR_AUTHCFG,	"Name of the MySQL table containing the group-name/user-name combination; can be the same as the password-table." ),
+ 
+    AP_INIT_TAKE1( "Auth_MySQL_Password_Field",		ap_set_string_slot,
+-		  (void*)APR_XtOffsetOf(mysql_auth_config_rec, password_field),
++		  (void*)APR_OFFSETOF(mysql_auth_config_rec, password_field),
+ 		  OR_AUTHCFG,	"The name of the field in the MySQL password table" ),
+ 
+    AP_INIT_TAKE1( "AuthMySQL_Password_Field",		ap_set_string_slot,
+-		  (void*)APR_XtOffsetOf(mysql_auth_config_rec, password_field),
++		  (void*)APR_OFFSETOF(mysql_auth_config_rec, password_field),
+ 		  OR_AUTHCFG,	"The name of the field in the MySQL password table" ),
+ 
+    AP_INIT_TAKE1( "Auth_MySQL_Password_Clause",		ap_set_string_slot,
+-		  (void*)APR_XtOffsetOf(mysql_auth_config_rec, password_where_clause),
++		  (void*)APR_OFFSETOF(mysql_auth_config_rec, password_where_clause),
+ 		  OR_AUTHCFG,	"Additional WHERE clause for group password/user-name lookup" ),
+ 
+    AP_INIT_TAKE1( "Auth_MySQL_Username_Field",		ap_set_string_slot,
+-		  (void*)APR_XtOffsetOf(mysql_auth_config_rec, user_field),
++		  (void*)APR_OFFSETOF(mysql_auth_config_rec, user_field),
+ 		  OR_AUTHCFG,	"The name of the user-name field in the MySQL password (and possibly group) table(s)." ),
+ 
+    AP_INIT_TAKE1( "AuthMySQL_Username_Field",		ap_set_string_slot,
+-		  (void*)APR_XtOffsetOf(mysql_auth_config_rec, user_field),
++		  (void*)APR_OFFSETOF(mysql_auth_config_rec, user_field),
+ 		  OR_AUTHCFG,	"The name of the user-name field in the MySQL password (and possibly group) table(s)." ),
+ 
+    AP_INIT_TAKE1( "Auth_MySQL_Group_Field",		ap_set_string_slot,
+-		  (void*)APR_XtOffsetOf(mysql_auth_config_rec, group_field),
++		  (void*)APR_OFFSETOF(mysql_auth_config_rec, group_field),
+ 		  OR_AUTHCFG,	"The name of the group field in the MySQL group table; must be set if you want to use groups." ),
+ 
+    AP_INIT_TAKE1( "AuthMySQL_Group_Field",		ap_set_string_slot,
+-		  (void*)APR_XtOffsetOf(mysql_auth_config_rec, group_field),
++		  (void*)APR_OFFSETOF(mysql_auth_config_rec, group_field),
+ 		  OR_AUTHCFG,	"The name of the group field in the MySQL group table; must be set if you want to use groups." ),
+ 
+    AP_INIT_TAKE1( "Auth_MySQL_Group_User_Field",	ap_set_string_slot,
+-		  (void*)APR_XtOffsetOf(mysql_auth_config_rec, group_user_field),
++		  (void*)APR_OFFSETOF(mysql_auth_config_rec, group_user_field),
+ 		  OR_AUTHCFG,	"The name of the user-name field in the MySQL group table; defaults to the same as the username field for the password table." ),
+ 
+    AP_INIT_TAKE1( "AuthMySQL_Group_User_Field",		ap_set_string_slot,
+-		  (void*)APR_XtOffsetOf(mysql_auth_config_rec, group_user_field),
++		  (void*)APR_OFFSETOF(mysql_auth_config_rec, group_user_field),
+ 		  OR_AUTHCFG,	"The name of the user-name field in the MySQL group table; defaults to the same as the username field for the password table." ),
+ 
+    AP_INIT_FLAG( "Auth_MySQL_Empty_Passwords",		ap_set_flag_slot,
+-		 (void*)APR_XtOffsetOf(mysql_auth_config_rec, allow_empty_passwords),
++		 (void*)APR_OFFSETOF(mysql_auth_config_rec, allow_empty_passwords),
+ 		 OR_AUTHCFG,	"Enable (on) or disable (off) empty password strings; in which case any user password is accepted." ),
+ 
+    AP_INIT_FLAG( "AuthMySQL_Empty_Passwords",		ap_set_flag_slot,
+-		 (void*)APR_XtOffsetOf(mysql_auth_config_rec, allow_empty_passwords),
++		 (void*)APR_OFFSETOF(mysql_auth_config_rec, allow_empty_passwords),
+ 		 OR_AUTHCFG,	"Enable (on) or disable (off) empty password strings; in which case any user password is accepted." ),
+ 
+    AP_INIT_FLAG( "Auth_MySQL_Authoritative",		ap_set_flag_slot,
+-		 (void*)APR_XtOffsetOf(mysql_auth_config_rec, authoritative),
++		 (void*)APR_OFFSETOF(mysql_auth_config_rec, authoritative),
+ 		 OR_AUTHCFG,	"When 'on' the MySQL database is taken to be authoritative and access control is not passed along to other db or access modules." ),
+ 
+    AP_INIT_FLAG( "AuthMySQL_Authoritative",		ap_set_flag_slot,
+-		 (void*)APR_XtOffsetOf(mysql_auth_config_rec, authoritative),
++		 (void*)APR_OFFSETOF(mysql_auth_config_rec, authoritative),
+ 		 OR_AUTHCFG,	"When 'on' the MySQL database is taken to be authoritative and access control is not passed along to other db or access modules." ),
+ 
+    AP_INIT_FLAG( "AuthMySQL_AllowOverride",		set_auth_mysql_override,
+@@ -848,7 +849,7 @@
+ 		 OR_AUTHCFG,	"Enable MySQL authentication" ),
+ 
+    AP_INIT_TAKE1( "Auth_MySQL_Where",		ap_set_string_slot,
+-		  (void*)APR_XtOffsetOf(mysql_auth_config_rec, password_where_clause),
++		  (void*)APR_OFFSETOF(mysql_auth_config_rec, password_where_clause),
+ 		  OR_AUTHCFG,	"Additional WHERE clause for group password/user-name lookup" ),
+ 
+   { NULL }

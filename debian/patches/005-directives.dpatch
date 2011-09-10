@@ -1,0 +1,20 @@
+#! /bin/sh /usr/share/dpatch/dpatch-run
+## 005-directives.dpatch by Joey Schulze <joey@debian.org>
+##
+## All lines beginning with `## DP:' are a description of the patch.
+## DP: Improve documentation for Auth_MySQL_Group_Field
+
+@DPATCH@
+diff -u -p -r1.1 -r1.2
+--- mod-auth-mysql/DIRECTIVES	14 May 2008 08:46:20 -0000	1.1
++++ mod-auth-mysql/DIRECTIVES	14 May 2008 12:53:34 -0000	1.2
+@@ -125,7 +125,8 @@ AuthMySQL_Password_Field <password_field
+ 	Synonym for Auth_MySQL_Password_Field.
+ 
+ Auth_MySQL_Group_Field <group_field_name>
+-	As per ...Username_Field above.  Defaults to 'groups'.
++	As per ...Username_Field above.  Defaults to 'groups'.  The query 
++	will use FIND_IN_SET(<group_name>,<group_field_name>).
+ 	
+ AuthMySQL_Group_Field <group_field_name>
+ 	Synonym for Auth_MySQL_Group_Field.
