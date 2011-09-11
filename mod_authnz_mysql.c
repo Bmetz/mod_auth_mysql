@@ -36,16 +36,16 @@
 #define PSTRCAT apr_pstrcat
 #define APACHELOG(severity, handle, message...) ap_log_error(APLOG_MARK, APLOG_NOERRNO | severity, 0, handle->server, message)
 
-#include "ap_provider.h"
+#include <ap_provider.h>
 #include <httpd.h>
 #include <http_config.h>
 #include <http_core.h>
 #include <http_protocol.h>
-#include "http_request.h"
+#include <http_request.h>
 #include <http_log.h>
-#include "mod_auth.h"
+#include <mod_auth.h>
 
-#include "http_request.h"   /* for ap_hook_(check_user_id | auth_checker)*/
+#include <http_request.h>   /* for ap_hook_(check_user_id | auth_checker)*/
 #include <apr_general.h>
 #include <apr_md5.h>
 #include <apr_sha1.h>
@@ -1138,13 +1138,13 @@ static authn_status authn_mysql_check_password(request_rec *r, char *user, const
 				return AUTH_GENERAL_ERROR;
 			}
 			
-			rv = check_password(password, sql_row[0], r, sec);
-			if (rv == AUTH_DENIED)
+			authn_status resv = check_password(password, sql_row[0], r, sec);
+			if (resv == AUTH_DENIED)
 			{
 				APACHELOG(APLOG_INFO, r,
 					"Authentication failed for user %s", user);
 			}
-			return rv;
+			return resv;
 			break;
 
 		default:
