@@ -27,8 +27,6 @@
  
 #define AUTHNZ_MYSQL_VERSION "1.0"
 
-#include "config.h"
-
 #define PALLOC apr_palloc
 #define PCALLOC apr_pcalloc
 #define SNPRINTF apr_snprintf
@@ -41,7 +39,6 @@
 #include <http_config.h>
 #include <http_core.h>
 #include <http_protocol.h>
-#include <http_request.h>
 #include <http_log.h>
 #include <mod_auth.h>
 
@@ -70,6 +67,9 @@
 #ifndef FALSE
 #define FALSE 0
 #endif
+
+#include "config.h"
+
 
 /* This are the system-wide config options; the more specific options live in
  * a authn_mysql_config_t structure, one for each MySQL-configured directory.
