@@ -25,7 +25,7 @@
  */
 
  
-#define AUTH_MYSQL_VERSION "4.3.9"
+#define AUTHNZ_MYSQL_VERSION "1.0"
 
 #include "config.h"
 
@@ -36,11 +36,14 @@
 #define PSTRCAT apr_pstrcat
 #define APACHELOG(severity, handle, message...) ap_log_error(APLOG_MARK, APLOG_NOERRNO | severity, 0, handle->server, message)
 
+#include "ap_provider.h"
 #include <httpd.h>
 #include <http_config.h>
 #include <http_core.h>
 #include <http_protocol.h>
+#include "http_request.h"
 #include <http_log.h>
+#include "mod_auth.h"
 
 #include "http_request.h"   /* for ap_hook_(check_user_id | auth_checker)*/
 #include <apr_general.h>

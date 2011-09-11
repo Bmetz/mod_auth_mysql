@@ -1,5 +1,3 @@
-APXS	= @apxs@
-APXSFLAGS =
 APXS2	= @apxs2@
 APXS2FLAGS =
 SRCS	= mod_authnz_mysql.c
@@ -10,7 +8,7 @@ MODULES = @modules@
 all: $(MODULES)
 
 mod_authnz_mysql.so: mod_authnz_mysql.la
-	cp .libs/apache2_mod_auth_mysql.so .
+	cp .libs/mod_authnz_mysql.so .
 
 mod_authnz_mysql.la: $(SRCS) $(HDRS)
 	$(APXS2) $(APXS2FLAGS) -o $@ $(OPTS) -DAPACHE2 -c $(SRCS)
