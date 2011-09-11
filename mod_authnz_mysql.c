@@ -642,7 +642,7 @@ static const char *set_authoritative(cmd_parms *cmd, void *sconf, int arg)
  */
 
 static
-command_rec mysql_auth_cmds[] = {
+command_rec authnz_mysql_cmds[] = {
    AP_INIT_TAKE3( "AuthMySQL_Info",	set_auth_mysql_info,
    		  NULL,
    		  RSRC_CONF,	"host, user and password of the MySQL database" ),
@@ -1240,7 +1240,7 @@ static int mysql_check_group(request_rec *r, char *user, char *group, authn_mysq
  */
 int mysql_authenticate_basic_user(request_rec *r)
 {
-	authn_mysql_config_t *sec = (authn_mysql_config_t *) ap_get_module_config(r->per_dir_config, &auth_mysql_module);
+	authn_mysql_config_t *sec = (authn_mysql_config_t *) ap_get_module_config(r->per_dir_config, &authnz_mysql_module);
 	conn_rec *c = r->connection;
 	const char *sent_pw;
 	int res;
@@ -1310,7 +1310,7 @@ int mysql_authenticate_basic_user(request_rec *r)
  */
 int check_mysql_auth_require(char *user, const char *t, request_rec *r)
 {
-	authn_mysql_config_t *sec = (authn_mysql_config_t *) ap_get_module_config(r->per_dir_config, &auth_mysql_module);
+	authn_mysql_config_t *sec = (authn_mysql_config_t *) ap_get_module_config(r->per_dir_config, &authnz_mysql_module);
 	const char *w;
 	int rv;
 	
@@ -1374,7 +1374,7 @@ int check_mysql_auth_require(char *user, const char *t, request_rec *r)
  */
 int authnz_mysql_check_user_access(request_rec *r)
 {
-	authn_mysql_config_t *sec = (authn_mysql_config_t *) ap_get_module_config(r->per_dir_config, &auth_mysql_module);
+	authn_mysql_config_t *sec = (authn_mysql_config_t *) ap_get_module_config(r->per_dir_config, &authnz_mysql_module);
 	char *user = r->user;
 	int m = r->method_number;
 	int rv;
