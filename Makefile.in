@@ -2,20 +2,17 @@ APXS	= @apxs@
 APXSFLAGS =
 APXS2	= @apxs2@
 APXS2FLAGS =
-SRCS	= mod_auth_mysql.c
+SRCS	= mod_authnz_mysql.c
 HDRS	= config.h
 OPTS	= @build_opts@ -lmysqlclient
 MODULES = @modules@
 
 all: $(MODULES)
 
-apache13_mod_auth_mysql.so: $(SRCS) $(HDRS)
-	$(APXS) $(APXSFLAGS) -o $@ $(OPTS) -c $(SRCS)
-
-apache2_mod_auth_mysql.so: apache2_mod_auth_mysql.la
+mod_authnz_mysql.so: mod_authnz_mysql.la
 	cp .libs/apache2_mod_auth_mysql.so .
 
-apache2_mod_auth_mysql.la: $(SRCS) $(HDRS)
+mod_authnz_mysql.la: $(SRCS) $(HDRS)
 	$(APXS2) $(APXS2FLAGS) -o $@ $(OPTS) -DAPACHE2 -c $(SRCS)
 
 clean:

@@ -1,7 +1,7 @@
 # Process this file with autoconf to produce a configure script.
-AC_INIT(mod_auth_mysql, 4.2.0)
+AC_INIT(mod_authnz_mysql, 1.0)
 
-AC_CONFIG_SRCDIR([mod_auth_mysql.c])
+AC_CONFIG_SRCDIR([mod_authnz_mysql.c])
 AC_CONFIG_HEADER([config.h])
 
 # Checks for programs.
@@ -9,77 +9,29 @@ AC_CONFIG_HEADER([config.h])
 # Checks for libraries.
 AC_CHECK_LIB([mysqlclient], [mysql_init])
 
-AC_ARG_ENABLE(apache13,
-AC_HELP_STRING([--enable-apache13], [Indicate that the apache 1.3 module should be built]),
-[
-if test "x$enableval" = "xyes"; then
-	buildapache13="yes"
-	modules="$modules apache13_mod_auth_mysql.so"
-fi
-],
-[
-# Build the apache 1.3 module by default
-buildapache13="yes"
-modules="$modules apache13_mod_auth_mysql.so"
-])
-
-AC_ARG_ENABLE(apache2,
-AC_HELP_STRING([--enable-apache2], [Indicate that the apache 2.0 module should be built]),
-[
-if test "x$enableval" = "xyes"; then
-	buildapache2="yes"
-	modules="$modules apache2_mod_auth_mysql.so"
-fi
-])
+modules="mod_authnz_mysql.so"
 AC_SUBST(modules)
-
-AC_ARG_WITH(apxs,
-AC_HELP_STRING([--with-apxs], [location of the apxs module helper]),
-[
-if test "x$buildapache13" = "xyes"; then
-	if test ! -x $withval; then
-		AC_MSG_ERROR($withval not found)
-	else
-		apxs="$withval"
-	fi
-fi
-],
-[
-if test "x$buildapache13" = "xyes"; then
-	# Test common apxs locations; add any others I've missed here
-	if test -x /usr/bin/apxs; then
-		apxs="/usr/bin/apxs"
-	elif test -x /usr/local/bin/apxs; then
-		apxs="/usr/local/bin/apxs"
-	else
-		AC_MSG_ERROR(Apache extension helper apxs not found!)
-	fi
-fi
-])
-AC_SUBST(apxs)
 
 AC_ARG_WITH(apxs2,
 AC_HELP_STRING([--with-apxs2], [location of the apxs2 Apache2 module helper]),
 [
-if test "x$buildapache2" = "xyes"; then
 	if test ! -x $withval; then
 		AC_MSG_ERROR($withval not found)
 	else
 		apxs2="$withval"
 	fi
-fi
 ],
 [
-if test "x$buildapache2" = "xyes"; then
 	# Test likely apxs2 locations
 	if test -x /usr/bin/apxs2; then
 		apxs2="/usr/bin/apxs2"
 	elif test -x /usr/local/bin/apxs2; then
 		apxs2="/usr/local/bin/apxs2"
+	elif test -x /usr/sbin/apxs2; then
+		apxs2="/usr/sbin/apxs2"		
 	else
 		AC_MSG_ERROR(Apache2 extension helper not found!)
 	fi
-fi
 ])
 AC_SUBST(apxs2)
 
