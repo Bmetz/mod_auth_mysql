@@ -1,5 +1,6 @@
 /* config.h.in.  Generated from configure.ac by autoheader.  */
-
+#ifndef _config_h
+#define _config_h 1
 /* Enable DES encrpytion */
 #undef CRYPT_DES
 
@@ -47,3 +48,4 @@
 
 /* Define to empty if `const' does not conform to ANSI C. */
 #undef const
+#endif
