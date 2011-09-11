@@ -320,7 +320,7 @@ typedef struct {
 
 } authn_mysql_config_t;
 
-module auth_mysql_module;
+module authnz_mysql_module;
 
 static int open_auth_dblink(request_rec *r, authn_mysql_config_t *sec);
 

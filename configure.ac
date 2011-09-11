@@ -3,6 +3,7 @@ AC_INIT(mod_authnz_mysql, 1.0)
 
 AC_CONFIG_SRCDIR([mod_authnz_mysql.c])
 AC_CONFIG_HEADER([config.h])
+AM_INIT_AUTOMAKE
 
 # Checks for programs.
 
