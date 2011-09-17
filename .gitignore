@@ -1,3 +1,14 @@
 
 aclocal.m4
 autom4te.cache
+.libs
+Makefile
+config.status
+.libs/*
+mod_authnz_mysql.lo
+mod_authnz_mysql.slo
+mod_authnz_mysql.la
+mod_authnz_mysql.so
+config.h
+config.log
+stamp-h1
