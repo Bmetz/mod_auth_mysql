@@ -27,8 +27,6 @@
  
 #define AUTHNZ_MYSQL_VERSION "1.0"
 
-#include "config.h"
-
 #define PALLOC apr_palloc
 #define PCALLOC apr_pcalloc
 #define SNPRINTF apr_snprintf
@@ -37,6 +35,9 @@
 #define APACHELOG(severity, handle, message...) ap_log_error(APLOG_MARK, APLOG_NOERRNO | severity, 0, handle->server, message)
 
 #include <ap_provider.h>
+
+#include "config.h"
+
 #include <httpd.h>
 #include <http_config.h>
 #include <http_core.h>
@@ -466,7 +467,7 @@ static const char *set_scrambled_password_flag(cmd_parms *cmd, void *sconf, int 
 /* Ensure that any string passed through us won't unduly upset the MySQL
  * server when passed in as part of a query.
  */
-static char *mysql_escape(authn_mysql_config_t *sec, request_rec *r, char *str, apr_pool_t *p)
+static char *mysql_escape(authn_mysql_config_t *sec, request_rec *r, const char *str, apr_pool_t *p)
 {
 	char *dest;
 	
@@ -1042,7 +1043,7 @@ static int check_password(const char *plaintext, char *hashed, request_rec *r, a
  * stored in the database, against all configured encryption schemes.
  * Returns 1 on successful match, 0 unsuccessful match, -1 on error.
  */
-static authn_status authn_mysql_check_password(request_rec *r, char *user, const char *password)
+static authn_status authnz_mysql_check_password(request_rec *r, const char *user, const char *password)
 {
 	char *auth_table = "mysql_auth", *auth_user_field = "username",
 		*auth_password_field = "passwd", *auth_password_clause = "";
@@ -1286,7 +1287,7 @@ int mysql_authenticate_basic_user(request_rec *r)
 		r->user,
 		sec->dir, getpid());
 
-		switch (mysql_check_user_password(r, r->user, sent_pw, sec)) {
+		switch (authnz_mysql_check_password(r, r->user, sent_pw)) {
 		case 0:
 			ap_note_basic_auth_failure(r);
 			return HTTP_UNAUTHORIZED;
@@ -1442,7 +1443,8 @@ int authnz_mysql_check_user_access(request_rec *r)
 
 static const authn_provider authn_mysql_provider =
 {
-    &authn_mysql_check_password,
+    &authnz_mysql_check_password,
+    NULL
 };
 
 static void register_hooks(apr_pool_t *p)
