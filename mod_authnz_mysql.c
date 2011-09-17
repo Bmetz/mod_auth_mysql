@@ -414,56 +414,6 @@ void *create_authnz_mysql_dir_config(apr_pool_t *p, char *d)
 	return sec;
 }
 
-/* Helper function to make some decisions about whether to use crypted
- * passwords in response to "AuthMySQL_Encrypted_Passwords on" in a config
- * file.
- * XXX DEPRECATED XXX
- */
-static const char *set_crypted_password_flag(cmd_parms *cmd, void *sconf, int arg)
-{
-	authn_mysql_config_t *sec = (authn_mysql_config_t *) sconf;
-	
-	if (sec->using_encryption_types) {
-		/* This setting is ignored if we're using Encryption_Types */
-		return NULL;
-	}
-#ifdef CRYPT_DES
-	if (arg) {
-		sec->encryption_types |= CRYPT_DES_ENCRYPTION_FLAG;
-	} else {
-		sec->encryption_types &= ~CRYPT_DES_ENCRYPTION_FLAG;
-		if (!sec->encryption_types) {
-			sec->encryption_types = PLAINTEXT_ENCRYPTION_FLAG;
-		}
-	}
-#endif
-
-	return NULL;
-}
-
-/* Equivalent to set_crypted_password_flag above, except that this time we're
- * talking about MySQL-style scrambled passwords instead.
- * XXX DEPRECATED XXX
- */
-static const char *set_scrambled_password_flag(cmd_parms *cmd, void *sconf, int arg)
-{
-	authn_mysql_config_t *sec = (authn_mysql_config_t *) sconf;
-
-	if (sec->using_encryption_types) {
-		/* This setting is ignored if we're using Encryption_Types */
-		return NULL;
-	}
-	if (arg) {
-		sec->encryption_types |= MYSQL_ENCRYPTION_FLAG;
-	} else {
-		sec->encryption_types &= ~MYSQL_ENCRYPTION_FLAG;
-		if (!sec->encryption_types) {
-			sec->encryption_types = PLAINTEXT_ENCRYPTION_FLAG;
-		}
-	}
-	return NULL;
-}
-
 /* Ensure that any string passed through us won't unduly upset the MySQL
  * server when passed in as part of a query.
  */
@@ -756,14 +706,6 @@ command_rec authnz_mysql_cmds[] = {
    AP_INIT_FLAG( "AuthMySQL_AllowOverride",		set_authnz_mysql_override,
 		 NULL,
 		 RSRC_CONF,	"Allow directory overrides of configuration" ),
-
-   AP_INIT_FLAG( "AuthMySQL_Encrypted_Passwords",	set_crypted_password_flag,
-		  NULL,
-		  OR_AUTHCFG,	"When 'on' the password in the password table are taken to be crypt()ed using your machines crypt() function." ),
-
-   AP_INIT_FLAG( "AuthMySQL_Scrambled_Passwords",	set_scrambled_password_flag,
-		 NULL,
-		 OR_AUTHCFG,	"When 'on' the password in the password table are taken to be scramble()d using mySQL's password() function." ),
 
    AP_INIT_ITERATE( "AuthMySQL_Encryption_Types",		set_encryption_types,
 		  NULL,
