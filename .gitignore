@@ -12,3 +12,4 @@ mod_authnz_mysql.so
 config.h
 config.log
 stamp-h1
+autom4te.cache/*
