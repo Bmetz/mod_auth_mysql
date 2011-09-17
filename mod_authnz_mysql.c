@@ -2,7 +2,7 @@
  * Copyright (c) 2001 by J. R. Westmoreland <jr@jrw.org>
  * Portions Copyright (c) 2002-2004 by Matthew Palmer <mpalmer@debian.org>
  *
- * Original module/version: mod_auth_mysql v2.20
+ * Original module/version: mod_authnz_mysql v2.20
  * Originally written and maintained by Zeev Suraski <bourbon@netvision.net.il>
  * A couple of fixes by Marschall Peter <Peter.Marschall@gedos.de>
  * and Brent Metz <bmetz@thor.tjhsst.edu>
@@ -322,9 +322,9 @@ typedef struct {
 
 module authnz_mysql_module;
 
-static int open_auth_dblink(request_rec *r, authn_mysql_config_t *sec);
+static int open_authnz_dblink(request_rec *r, authn_mysql_config_t *sec);
 
-static apr_status_t auth_mysql_cleanup(void *ptr)
+static apr_status_t authnz_mysql_cleanup(void *ptr)
 {
 	authn_mysql_config_t *sec = ptr;
 
@@ -337,7 +337,7 @@ static apr_status_t auth_mysql_cleanup(void *ptr)
 	}
 }
 
-/* Removed mysql_auth_init_handler
+/* Removed mysql_authnz_init_handler
  */
 
 /* Called each and every time a new per-directory configuration is
@@ -366,7 +366,7 @@ void *create_authnz_mysql_dir_config(apr_pool_t *p, char *d)
 	 * not happen, we are in a world of pain.
 	 */
 
-	apr_pool_cleanup_register(p, sec, auth_mysql_cleanup, apr_pool_cleanup_null);
+	apr_pool_cleanup_register(p, sec, authnz_mysql_cleanup, apr_pool_cleanup_null);
 
 #if APR_HAS_THREADS	
 	apr_thread_mutex_create(&sec->lock, APR_THREAD_MUTEX_DEFAULT, p);
@@ -487,7 +487,7 @@ static char *mysql_escape(authn_mysql_config_t *sec, request_rec *r, const char 
 
 /* Config helper to set the server-wide default database name.
  */
-static const char *set_auth_mysql_db(cmd_parms * parms, void *dummy, const char *db)
+static const char *set_authnz_mysql_db(cmd_parms * parms, void *dummy, const char *db)
 {
 	auth_db_name = (char *)db;
 	return NULL;
@@ -495,7 +495,7 @@ static const char *set_auth_mysql_db(cmd_parms * parms, void *dummy, const char 
 
 /* Config helper to set the server-wide default database host.
  */
-static const char *set_auth_mysql_host(cmd_parms *parms, void *dummy, const char *host)
+static const char *set_authnz_mysql_host(cmd_parms *parms, void *dummy, const char *host)
 {
 	auth_db_host = (char *) host;
 	return NULL;
@@ -503,7 +503,7 @@ static const char *set_auth_mysql_host(cmd_parms *parms, void *dummy, const char
 
 /* Config helper to set server-wide defaults for database parameters.
  */
-static const char *set_auth_mysql_info(cmd_parms * parms, void *dummy, const char *host, const char *user, const char *pwd)
+static const char *set_authnz_mysql_info(cmd_parms * parms, void *dummy, const char *host, const char *user, const char *pwd)
 {
 	if (*host != '.') {
 		auth_db_host = (char *) host;
@@ -522,7 +522,7 @@ static const char *set_auth_mysql_info(cmd_parms * parms, void *dummy, const cha
 
 /* Config helper to set the server-wide default database username.
  */
-static const char *set_auth_mysql_user(cmd_parms *parms, void *dummy, const char *user)
+static const char *set_authnz_mysql_user(cmd_parms *parms, void *dummy, const char *user)
 {
 	auth_db_user = (char *)user;
 	return NULL;
@@ -531,7 +531,7 @@ static const char *set_auth_mysql_user(cmd_parms *parms, void *dummy, const char
 /* Config helper to set the server-wide default database password (coupled to
  * the user specified above).
  */
-static const char *set_auth_mysql_pwd(cmd_parms *parms, void *dummy, const char *pwd)
+static const char *set_authnz_mysql_pwd(cmd_parms *parms, void *dummy, const char *pwd)
 {
 	auth_db_pwd = (char *)pwd;
 	return NULL;
@@ -539,7 +539,7 @@ static const char *set_auth_mysql_pwd(cmd_parms *parms, void *dummy, const char 
 
 /* Set the server-wide database server socket.
  */
-static const char *set_auth_mysql_socket(cmd_parms *parms, void *dummy, const char *sock)
+static const char *set_authnz_mysql_socket(cmd_parms *parms, void *dummy, const char *sock)
 {
 	auth_db_socket = (char *)socket;
 	return NULL;
@@ -547,7 +547,7 @@ static const char *set_auth_mysql_socket(cmd_parms *parms, void *dummy, const ch
 
 /* Set the server-wide database server port.
  */
-static const char *set_auth_mysql_port(cmd_parms *parms, void *dummy, const char *port)
+static const char *set_authnz_mysql_port(cmd_parms *parms, void *dummy, const char *port)
 {
 	auth_db_port = (unsigned int) atoi(port);
 	return NULL;
@@ -559,7 +559,7 @@ static const char *set_auth_mysql_port(cmd_parms *parms, void *dummy, const char
  * of a config structure, and I'm not sure how to set globals from the Apache
  * config thing.
  */
-static const char *set_auth_mysql_override(cmd_parms *parms, void *dummy, int arg)
+static const char *set_authnz_mysql_override(cmd_parms *parms, void *dummy, int arg)
 {
 	auth_db_override = arg;
 	return NULL;
@@ -589,7 +589,7 @@ static const char *set_encryption_types(cmd_parms *cmd, void *sconf, const char 
 }
 
 /* This pair of config helpers exist only because of varying semantics
- * in the two versions of mod_auth_mysql I merged.  As soon as we have a
+ * in the two versions of mod_authnz_mysql I merged.  As soon as we have a
  * consistent set of configuration primitives, these are going.
  */
 static const char *set_non_persistent(cmd_parms *cmd, void *sconf, int arg)
@@ -643,39 +643,39 @@ static const char *set_authoritative(cmd_parms *cmd, void *sconf, int arg)
 
 static
 command_rec authnz_mysql_cmds[] = {
-   AP_INIT_TAKE3( "AuthMySQL_Info",	set_auth_mysql_info,
+   AP_INIT_TAKE3( "AuthMySQL_Info",	set_authnz_mysql_info,
    		  NULL,
    		  RSRC_CONF,	"host, user and password of the MySQL database" ),
 
-   AP_INIT_TAKE1( "AuthMySQL_DefaultHost",	set_auth_mysql_host,
+   AP_INIT_TAKE1( "AuthMySQL_DefaultHost",	set_authnz_mysql_host,
 		  NULL,
 		  RSRC_CONF,	"Default MySQL host" ),
 
-   AP_INIT_TAKE1( "AuthMySQL_DefaultUser",	set_auth_mysql_user,
+   AP_INIT_TAKE1( "AuthMySQL_DefaultUser",	set_authnz_mysql_user,
 		  NULL,
 		  RSRC_CONF,	"Default MySQL user" ),
 
-   AP_INIT_TAKE1( "AuthMySQL_DefaultPassword",	set_auth_mysql_pwd,
+   AP_INIT_TAKE1( "AuthMySQL_DefaultPassword",	set_authnz_mysql_pwd,
 		  NULL,
 		  RSRC_CONF,	"Default MySQL password" ),
 
-   AP_INIT_TAKE1( "AuthMySQL_DefaultPort",	set_auth_mysql_port,
+   AP_INIT_TAKE1( "AuthMySQL_DefaultPort",	set_authnz_mysql_port,
 		  NULL,
 		  RSRC_CONF,	"Default MySQL server port" ),
 	
 
 	  	
-   AP_INIT_TAKE1( "AuthMySQL_DefaultSocket",	set_auth_mysql_socket,
+   AP_INIT_TAKE1( "AuthMySQL_DefaultSocket",	set_authnz_mysql_socket,
 		  NULL,
 		  RSRC_CONF,	"Default MySQL server socket" ),
 
 
-   AP_INIT_TAKE1( "AuthMySQL_General_DB",	set_auth_mysql_db,
+   AP_INIT_TAKE1( "AuthMySQL_General_DB",	set_authnz_mysql_db,
 		  NULL,
 		  RSRC_CONF,	"default database for MySQL authentication" ),
 
 
-   AP_INIT_TAKE1( "AuthMySQL_DefaultDB",	set_auth_mysql_db,
+   AP_INIT_TAKE1( "AuthMySQL_DefaultDB",	set_authnz_mysql_db,
 		  NULL,
 		  RSRC_CONF,	"default database for MySQL authentication" ),
 
@@ -753,7 +753,7 @@ command_rec authnz_mysql_cmds[] = {
 		 NULL,
 		 OR_AUTHCFG,	"When 'on' the MySQL database is taken to be authoritative and access control is not passed along to other db or access modules." ),
 
-   AP_INIT_FLAG( "AuthMySQL_AllowOverride",		set_auth_mysql_override,
+   AP_INIT_FLAG( "AuthMySQL_AllowOverride",		set_authnz_mysql_override,
 		 NULL,
 		 RSRC_CONF,	"Allow directory overrides of configuration" ),
 
@@ -788,22 +788,22 @@ command_rec authnz_mysql_cmds[] = {
   { NULL }
 };
 
-static apr_status_t auth_mysql_result_cleanup(void *result)
+static apr_status_t authnz_mysql_result_cleanup(void *result)
 {
 	mysql_free_result((MYSQL_RES *) result);
 }
 
 
-static void note_cleanups_for_mysql_auth_result(apr_pool_t *p, MYSQL_RES * result)
+static void note_cleanups_for_mysql_authnz_result(apr_pool_t *p, MYSQL_RES * result)
 {
-	apr_pool_cleanup_register(p, (void *) result, auth_mysql_result_cleanup, auth_mysql_result_cleanup);
+	apr_pool_cleanup_register(p, (void *) result, authnz_mysql_result_cleanup, authnz_mysql_result_cleanup);
 }
 
 /* Make a MySQL database link open and ready for business.  Returns 0 on
  * success, or the MySQL error number which caused the failure if there was
  * some sort of problem.
  */
-static int open_auth_dblink(request_rec *r, authn_mysql_config_t *sec)
+static int open_authnz_dblink(request_rec *r, authn_mysql_config_t *sec)
 {
 	char *host = "localhost", *socket = NULL;
 	unsigned int port = 3306;
@@ -895,7 +895,7 @@ static int open_auth_dblink(request_rec *r, authn_mysql_config_t *sec)
 
 	if (!sec->persistent) {
 		APACHELOG(APLOG_DEBUG, r, "Registering non-persistent for %s", sec->dir);
-		apr_pool_cleanup_register(r->pool, sec, auth_mysql_cleanup, apr_pool_cleanup_null);
+		apr_pool_cleanup_register(r->pool, sec, authnz_mysql_cleanup, apr_pool_cleanup_null);
 	}
 
 	if (sec->db_charset) {
@@ -942,9 +942,9 @@ static int safe_mysql_query(request_rec *r, char *query, authn_mysql_config_t *s
 	if (!sec->dbh) {
 		APACHELOG(APLOG_DEBUG, r,
 			"No DB connection open - firing one up");
-		if ((error = open_auth_dblink(r, sec))) {
+		if ((error = open_authnz_dblink(r, sec))) {
 			APACHELOG(APLOG_DEBUG, r,
-				"open_auth_dblink returned %i", error);
+				"open_authnz_dblink returned %i", error);
 			return error;
 		}
 
@@ -1000,7 +1000,7 @@ static MYSQL_RES *safe_mysql_store_result(apr_pool_t *p, authn_mysql_config_t *s
 #endif
 
 	if (result) {
-		note_cleanups_for_mysql_auth_result(p, result);
+		note_cleanups_for_mysql_authnz_result(p, result);
 	}
 	return result;
 }
@@ -1059,9 +1059,9 @@ static authn_status authnz_mysql_check_password(request_rec *r, const char *user
 	if (!sec->dbh) {
 		APACHELOG(APLOG_DEBUG, r,
 			"No DB connection open - firing one up");
-		if ((error = open_auth_dblink(r, sec))) {
+		if ((error = open_authnz_dblink(r, sec))) {
 			APACHELOG(APLOG_DEBUG, r,
-				"open_auth_dblink returned %i", error);
+				"open_authnz_dblink returned %i", error);
 			return AUTH_GENERAL_ERROR;
 		}
 
@@ -1278,7 +1278,7 @@ int mysql_authenticate_basic_user(request_rec *r)
 	}
 
 	/* obtain sent password */
-	if ((res = ap_get_basic_auth_pw(r, &sent_pw))) {
+	if ((res = ap_get_basic_authnz_pw(r, &sent_pw))) {
 		return res;
 	}
 
@@ -1289,7 +1289,7 @@ int mysql_authenticate_basic_user(request_rec *r)
 
 		switch (authnz_mysql_check_password(r, r->user, sent_pw)) {
 		case 0:
-			ap_note_basic_auth_failure(r);
+			ap_note_basic_authnz_failure(r);
 			return HTTP_UNAUTHORIZED;
 			break;
 		case 1:
@@ -1308,7 +1308,7 @@ int mysql_authenticate_basic_user(request_rec *r)
  * if the user satisfies the line, or some sort of failure return code
  * otherwise.
  */
-int check_mysql_auth_require(char *user, const char *t, request_rec *r)
+int check_mysql_authnz_require(char *user, const char *t, request_rec *r)
 {
 	authn_mysql_config_t *sec = (authn_mysql_config_t *) ap_get_module_config(r->per_dir_config, &authnz_mysql_module);
 	const char *w;
@@ -1360,7 +1360,7 @@ int check_mysql_auth_require(char *user, const char *t, request_rec *r)
 		return HTTP_INTERNAL_SERVER_ERROR;
 	}
 
-	APACHELOG(APLOG_ERR, r, "CAN'T HAPPEN: Dropped out of the bottom of check_mysql_auth_require!");
+	APACHELOG(APLOG_ERR, r, "CAN'T HAPPEN: Dropped out of the bottom of check_mysql_authnz_require!");
 	return HTTP_INTERNAL_SERVER_ERROR;
 }
 
@@ -1425,7 +1425,7 @@ int authnz_mysql_check_user_access(request_rec *r)
 		 * where we continue looping is when the user didn't pass this
 		 * check, but might pass a future one, so keep looking.
 		 */
-		if ((rv = check_mysql_auth_require(user, t, r))
+		if ((rv = check_mysql_authnz_require(user, t, r))
 			!= HTTP_UNAUTHORIZED)
 		{
 			return rv;
@@ -1437,7 +1437,7 @@ int authnz_mysql_check_user_access(request_rec *r)
 		return DECLINED;
 	}
 
-	ap_note_basic_auth_failure(r);
+	ap_note_basic_authnz_failure(r);
 	return HTTP_UNAUTHORIZED;
 }
 
@@ -1451,7 +1451,7 @@ static void register_hooks(apr_pool_t *p)
 {
 	static const char * const aszPost[]={ "mod_authz_user.c", NULL };
 	ap_register_provider(p, AUTHN_PROVIDER_GROUP, "mysql", "0", &authn_mysql_provider);
-	ap_hook_auth_checker(authnz_mysql_check_user_access, NULL, aszPost, APR_HOOK_MIDDLE);
+	ap_hook_authnz_checker(authnz_mysql_check_user_access, NULL, aszPost, APR_HOOK_MIDDLE);
 }
 
 module AP_MODULE_DECLARE_DATA authnz_mysql_module =
